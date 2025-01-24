@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "430615036279",
+    "project_id": "animeishi-73560",
+    "storage_bucket": "animeishi-73560.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430615036279:android:d4564b3b6e1e7d58942172",
+        "android_client_info": {
+          "package_name": "com.example.animeishi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHm14k2b7f6CoFB3SEKvwp-WqUkVglisk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

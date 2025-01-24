@@ -1,0 +1,5 @@
+package com.example.animeishi
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity()
