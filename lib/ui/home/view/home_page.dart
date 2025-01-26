@@ -15,7 +15,7 @@ class HomePage extends StatelessWidget {
             onPressed: () {
               // 認証ページに遷移する処理をここに書く
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => AuthGate()));
+                  context, MaterialPageRoute(builder: (context) => AuthPage()));
             },
           ),
         ],
@@ -35,21 +35,22 @@ class HomePage extends StatelessWidget {
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.search),
-                label: '検索',
+                label: 'アニメ',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.notifications),
-                label: '通知',
+                icon: Icon(Icons.qr_code),
+                label: 'QRコード',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.message),
-                label: 'メッセージ',
+                icon: Icon(Icons.social_distance),
+                label: 'SNS',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
                 label: 'プロフィール',
               ),
             ],
+            backgroundColor: Colors.blueGrey,
             onTap: (index) {
               // 各ボタンを押したときの処理をここに書く
             },
