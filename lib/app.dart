@@ -1,7 +1,10 @@
+import 'package:animeishi/ui/auth/view/auth_page.dart';
+import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:flutter/material.dart';
-import './ui/countUp/view/countUpPage.dart';
+// import './ui/countUp/view/countUpPage.dart';
 import 'package:provider/provider.dart';
 import './ui/countUp/view_model/countUp_view_model.dart';
+// import './ui/home/view/home_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -11,11 +14,11 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => CountUpViewModel(),
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'アニ名刺',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: const MyHomePage(title: 'Flutter Demo Home Page'),
+        home: AuthPage(),
       ),
     );
   }
