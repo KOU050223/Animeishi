@@ -1,4 +1,5 @@
 // 遷移先
+import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:animeishi/ui/auth/view/auth_page.dart';
 import 'package:animeishi/ui/profile/view/profile_page.dart';
 
@@ -56,6 +57,18 @@ class HomePage extends StatelessWidget {
             onTap: (index) {
               // 各ボタンを押したときの処理をここに書く
               switch (index) {
+                case 0: //ホーム画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                  break;
+                case 1: //アニメ画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AnimeListPage()),
+                  );
+                  break;
                 case 4: //プロフィール画面
                   Navigator.push(
                     context,
