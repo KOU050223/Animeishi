@@ -1,4 +1,8 @@
+// 遷移先
 import 'package:animeishi/ui/auth/view/auth_page.dart';
+import 'package:animeishi/ui/profile/view/profile_page.dart';
+
+// 標準
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -51,6 +55,15 @@ class HomePage extends StatelessWidget {
             backgroundColor: Colors.blueGrey,
             onTap: (index) {
               // 各ボタンを押したときの処理をここに書く
+              switch (index) {
+                case 4: //プロフィール画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
+                  );
+                  break;
+                default:
+              }
             },
           ),
         ],
