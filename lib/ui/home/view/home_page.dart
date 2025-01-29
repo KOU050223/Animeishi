@@ -15,6 +15,7 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.login),
+            iconSize: 30,
             onPressed: () {
               // 認証ページに遷移する処理をここに書く
               Navigator.push(
