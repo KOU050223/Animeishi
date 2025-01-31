@@ -1,5 +1,5 @@
 import 'package:animeishi/ui/auth/view/auth_page.dart';
-import 'package:animeishi/ui/camera/view/camera_page.dart';
+import 'package:animeishi/ui/camera/view/qr_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -56,10 +56,11 @@ class HomePage extends StatelessWidget {
                 case 2: //カメラ起動(QRアイコン)
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CameraPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const ScannerWidget()),
                   );
                   break;
-                  default:
+                default:
               }
             },
           ),
