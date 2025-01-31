@@ -2,6 +2,7 @@
 import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:animeishi/ui/auth/view/auth_page.dart';
 import 'package:animeishi/ui/profile/view/profile_page.dart';
+import 'package:animeishi/ui/camera/view/camera_page.dart';
 
 // 標準
 import 'package:flutter/material.dart';
@@ -70,13 +71,20 @@ class HomePage extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => AnimeListPage()),
                   );
                   break;
+                case 2: //カメラ起動(QRアイコン)
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CameraPage()),
+                  );
+                  break;
+
                 case 4: //プロフィール画面
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => ProfilePage()),
                   );
                   break;
-                default:
+                  default:
               }
             },
           ),
