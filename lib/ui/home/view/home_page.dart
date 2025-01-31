@@ -1,5 +1,10 @@
+// 遷移先
+import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:animeishi/ui/auth/view/auth_page.dart';
+import 'package:animeishi/ui/profile/view/profile_page.dart';
 import 'package:animeishi/ui/camera/view/camera_page.dart';
+
+// 標準
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -11,6 +16,7 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.login),
+            iconSize: 30,
             onPressed: () {
               // 認証ページに遷移する処理をここに書く
               Navigator.push(
@@ -53,10 +59,29 @@ class HomePage extends StatelessWidget {
             onTap: (index) {
               // 各ボタンを押したときの処理をここに書く
               switch (index) {
+                case 0: //ホーム画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                  break;
+                case 1: //アニメ画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AnimeListPage()),
+                  );
+                  break;
                 case 2: //カメラ起動(QRアイコン)
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const CameraPage()),
+                  );
+                  break;
+
+                case 4: //プロフィール画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
                   );
                   break;
                   default:

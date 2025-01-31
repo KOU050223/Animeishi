@@ -30,7 +30,7 @@ class _EmailLoginPage extends State<EmailLoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('LoginPage'),
+          title: const Text('ログイン'),
         ),
         body: BackgroundAnimation1(
           size: MediaQuery.of(context).size,
@@ -111,30 +111,58 @@ class _EmailLoginPage extends State<EmailLoginPage> {
                         setState(() {
                           errorMessage = 'メールアドレスまたはパスワードが間違っています';
                         });
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Login Error'),
-                              content: Text(errorMessage),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      password = '';
-                                    });
-                                    passwordController.clear();
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
                         print(e);
                       }
                     },
+                  ),
+                  // テストログイン用のボタン(!!!!!後で消す!!!!!)
+                  ElevatedButton(
+                    child: const Text('テストログイン'),
+                    onPressed: () async {
+                      try {
+                        setState(() {
+                          // テスト用のメールアドレスとパスワード
+                          email = 'test@test.com';
+                          password = 'password';
+                        });
+                        // メール/パスワードでログイン
+                        final User? user = (await FirebaseAuth.instance
+                                .signInWithEmailAndPassword(
+                                    email: email, password: password))
+                            .user;
+                        if (user != null) {
+                          print("ログインしました　${user.email} , ${user.uid}");
+                          setState(() {
+                            email = '';
+                            password = '';
+                          });
+                          emailController.clear();
+                          passwordController.clear();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => HomePage()),
+                          );
+                        }
+                      } catch (e) {
+                        // エラーが発生した場合
+                        setState(() {
+                          errorMessage = 'メールアドレスまたはパスワードが間違っています';
+                        });
+                        print(e);
+                      }
+                    },
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await FirebaseAuth.instance
+                            .sendPasswordResetEmail(email: email);
+                        print("${email}へパスワードリセット用のメールを送信しました");
+                      } catch (e) {
+                        print(e);
+                      }
+                    },
+                    child: const Text('パスワードリセット'),
                   ),
                   if (errorMessage.isNotEmpty)
                     Padding(
