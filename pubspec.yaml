@@ -38,6 +38,7 @@ dependencies:
   firebase_auth: ^5.4.1
   provider: ^6.0.5
   firebase_ui_auth: ^1.16.1
+  cloud_firestore: ^5.6.2
   mobile_scanner: ^6.0.5
   qr_flutter: ^4.1.0
 dev_dependencies:

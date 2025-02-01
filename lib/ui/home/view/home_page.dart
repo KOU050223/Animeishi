@@ -1,7 +1,12 @@
+// 遷移先
+import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:animeishi/ui/auth/view/auth_page.dart';
+import 'package:animeishi/ui/profile/view/profile_page.dart';
 import 'package:animeishi/ui/camera/view/qr_page.dart';
+
+// 標準
 
 class HomePage extends StatelessWidget {
   final String qrData = "https://anime.bang-dream.com/avemujica/"; // テストデータ
@@ -14,6 +19,7 @@ class HomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.login),
+            iconSize: 30,
             onPressed: () {
               Navigator.push(
                   context, MaterialPageRoute(builder: (context) => AuthPage()));
@@ -74,11 +80,30 @@ class HomePage extends StatelessWidget {
             backgroundColor: Colors.blueGrey,
             onTap: (index) {
               switch (index) {
-                case 2:
+                case 0: //ホーム画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                  break;
+                case 1: //アニメ画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AnimeListPage()),
+                  );
+                  break;
+                case 2: //カメラ起動(QRアイコン)
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => const ScannerWidget()),
+                  );
+                  break;
+
+                case 4: //プロフィール画面
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
                   );
                   break;
                 default:
