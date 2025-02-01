@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:collection/collection.dart';
 
 class AnimeListViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _animeList = [];
@@ -112,21 +113,37 @@ class AnimeListViewModel extends ChangeNotifier {
     await FirebaseFirestore.instance.enableNetwork();
 
     try {
-      // ▼ 以下はこれまでのバッチ書き込みロジックをそのまま使用
       final userId = user.uid;
       final List<WriteBatch> batches = [];
       WriteBatch batch = FirebaseFirestore.instance.batch();
       int batchSize = 0;
 
-      // Firestoreに選択されたアニメを保存
+      // Firestoreに選択されたアニメを保存（TID以外のデータも含む）
       for (var tid in _selectedAnime) {
-        final docRef = FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('selectedAnime')
-            .doc(tid);
-        batch.set(docRef, {'tid': tid});
-        batchSize++;
+        // _animeListから該当するanimeデータを探す
+        final anime = _animeList.firstWhereOrNull(
+          (element) => element['tid'] == tid,
+        );
+
+        if (anime != null) {
+          final docRef = FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .collection('selectedAnime')
+              .doc(tid);
+          // TIDのみならず、タイトルやその他の情報も保存する
+          batch.set(docRef, {
+            'tid': anime['tid'],
+            'title': anime['title'],
+            'titleyomi': anime['titleyomi'],
+            'firstmonth': anime['firstmonth'],
+            'firstyear': anime['firstyear'],
+            'comment': anime['comment'],
+          });
+          batchSize++;
+        } else {
+          print('Warning: tid $tid に対応するanimeデータが見つかりません');
+        }
 
         if (batchSize == 500) {
           batches.add(batch);
