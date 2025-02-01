@@ -1,4 +1,4 @@
-// 遷移先
+import 'package:flutter/material.dart';
 import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -116,5 +116,12 @@ class HomePage extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class HomePageContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('ホーム画面のコンテンツ'));
   }
 }
