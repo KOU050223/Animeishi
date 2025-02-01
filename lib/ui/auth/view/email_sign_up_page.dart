@@ -1,93 +1,126 @@
+import 'package:animeishi/ui/home/view/home_page.dart';
+import 'package:animeishi/ui/auth/view/auth_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../components/background_animation.dart';
 
 class EmailSignUpPage extends StatefulWidget {
+  const EmailSignUpPage({Key? key}) : super(key: key);
+
   @override
   _EmailSignUpState createState() => _EmailSignUpState();
 }
 
 class _EmailSignUpState extends State<EmailSignUpPage> {
   // 入力したメールアドレス・パスワード
-  String _email = '';
-  String _password = '';
+  String email = '';
+  String password = '';
+  bool hidePassword = true;
+  String errorMessage = '';
+
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              // 1行目 メールアドレス入力用テキストフィールド
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'メールアドレス'),
-                onChanged: (String value) {
-                  setState(() {
-                    _email = value;
-                  });
-                },
-              ),
-              // 2行目 パスワード入力用テキストフィールド
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'パスワード'),
-                obscureText: true,
-                onChanged: (String value) {
-                  setState(() {
-                    _password = value;
-                  });
-                },
-              ),
-              // 3行目 ユーザ登録ボタン
-              ElevatedButton(
-                child: const Text('ユーザ登録'),
-                onPressed: () async {
-                  try {
-                    final User? user = (await FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                                email: _email, password: _password))
-                        .user;
-                    if (user != null)
-                      print("ユーザ登録しました ${user.email} , ${user.uid}");
-                  } catch (e) {
-                    print(e);
-                  }
-                },
-              ),
-              // 4行目 ログインボタン
-              ElevatedButton(
-                child: const Text('ログイン'),
-                onPressed: () async {
-                  try {
-                    // メール/パスワードでログイン
-                    final User? user = (await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                                email: _email, password: _password))
-                        .user;
-                    if (user != null)
-                      print("ログインしました　${user.email} , ${user.uid}");
-                  } catch (e) {
-                    print(e);
-                  }
-                },
-              ),
-              // 5行目 パスワードリセット登録ボタン
-              ElevatedButton(
-                  child: const Text('パスワードリセット'),
-                  onPressed: () async {
-                    try {
-                      await FirebaseAuth.instance
-                          .sendPasswordResetEmail(email: _email);
-                      print("パスワードリセット用のメールを送信しました");
-                    } catch (e) {
-                      print(e);
-                    }
-                  }),
-            ],
-          ),
+        appBar: AppBar(
+          title: const Text('ログイン'),
         ),
-      ),
-    );
+        body: BackgroundAnimation1(
+          size: MediaQuery.of(context).size,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.mail),
+                      hintText: 'hogehoge@email.com',
+                      labelText: 'Email Address',
+                    ),
+                    onChanged: (String value) {
+                      setState(() {
+                        email = value;
+                      });
+                    },
+                  ),
+                  TextFormField(
+                    obscureText: hidePassword,
+                    decoration: InputDecoration(
+                      icon: const Icon(Icons.lock),
+                      labelText: 'Password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          hidePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            hidePassword = !hidePassword;
+                          });
+                        },
+                      ),
+                    ),
+                    onChanged: (String value) {
+                      setState(() {
+                        password = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  ElevatedButton(
+                    child: const Text('登録'),
+                    onPressed: () async {
+                      try {
+                        final User? user = (await FirebaseAuth.instance
+                                .createUserWithEmailAndPassword(
+                                    email: email, password: password))
+                            .user;
+                        if (user != null)
+                          print("ユーザ登録しました ${user.email} , ${user.uid}");
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AuthPage()));
+                      } catch (e) {
+                        // エラーが発生した場合
+                        setState(() {
+                          errorMessage = e.toString();
+                        });
+                        print(e);
+                      }
+                    },
+                  ),
+                  if (errorMessage.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Text(
+                        errorMessage,
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ));
   }
 }
