@@ -75,26 +75,29 @@ class AnimeListPage extends StatelessWidget {
                         : const Icon(Icons.cloud_download),
                     label: Text(viewModel.isLoading ? '読み込み中...' : 'オンラインから取得'),
                   ),
-                ), // 「登録」ボタン
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    onPressed: viewModel.isLoading
-                        ? null
-                        : viewModel.saveSelectedAnime,
-                    icon: const Icon(Icons.save),
-                    label: const Text('登録'),
-                  ),
                 ),
-                // 「削除」ボタン
+                // 「登録」ボタンと「削除」ボタン
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    onPressed: viewModel.isLoading
-                        ? null
-                        : viewModel.deleteSelectedAnime,
-                    icon: const Icon(Icons.delete),
-                    label: const Text('削除'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: viewModel.isLoading
+                            ? null
+                            : viewModel.deleteSelectedAnime,
+                        icon: const Icon(Icons.delete),
+                        label: const Text('削除'),
+                      ),
+                      SizedBox(width: 16), // ボタン間のスペース
+                      ElevatedButton.icon(
+                        onPressed: viewModel.isLoading
+                            ? null
+                            : viewModel.saveSelectedAnime,
+                        icon: const Icon(Icons.save),
+                        label: const Text('登録'),
+                      ),
+                    ],
                   ),
                 ),
                 // アニメリスト表示
