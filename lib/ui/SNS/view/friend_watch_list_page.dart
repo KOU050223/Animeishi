@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:animeishi/ui/watch/view/watch_anime.dart';
+import 'package:animeishi/ui/watch/view/watch_anime.dart';  // これを追加
 
+class FriendWatchListPage extends StatefulWidget {
+  final String userId;
 
-class WatchListPage extends StatefulWidget {
+  FriendWatchListPage({required this.userId});
+
   @override
-  _WatchListPageState createState() => _WatchListPageState();
+  _FriendWatchListPageState createState() => _FriendWatchListPageState();
 }
 
-class _WatchListPageState extends State<WatchListPage> {
+class _FriendWatchListPageState extends State<FriendWatchListPage> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _animeList = [];
   Set<String> _selectedAnime = {}; // ユーザーが選択したアニメのTIDを保持
@@ -20,23 +22,19 @@ class _WatchListPageState extends State<WatchListPage> {
     _fetchSelectedAnime();
   }
 
-  // ユーザーの選択されたアニメ(TID)をFirestoreから取得する
+  // フレンドの選択されたアニメ(TID)をFirestoreから取得する
   Future<void> _fetchSelectedAnime() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final userId = user.uid;
-      try {
-        final snapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('selectedAnime')
-            .get();
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId) // フレンドの userId を使います
+          .collection('selectedAnime')
+          .get();
 
-        _selectedAnime = snapshot.docs.map((doc) => doc.id).toSet();
-        await _fetchAnimeDetails();
-      } catch (e) {
-        print('Failed to fetch selected anime: $e');
-      }
+      _selectedAnime = snapshot.docs.map((doc) => doc.id).toSet();
+      await _fetchAnimeDetails();
+    } catch (e) {
+      print('Failed to fetch selected anime: $e');
     }
   }
 
@@ -48,7 +46,7 @@ class _WatchListPageState extends State<WatchListPage> {
           .get();
 
       final List<Map<String, dynamic>> fetchedList = snapshot.docs
-          .where((doc) => _selectedAnime.contains(doc.id))  // 選択されたTIDのものだけフィルタリング
+          .where((doc) => _selectedAnime.contains(doc.id)) // 選択されたTIDのものだけフィルタリング
           .map((doc) {
         return {
           'id': doc.id,
@@ -77,7 +75,7 @@ class _WatchListPageState extends State<WatchListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('視聴履歴'),
+        title: Text('フレンドの視聴履歴'),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())  // ローディング中
