@@ -40,11 +40,11 @@ void AnimeListFactory() async {
     },
     {
       'TID': '5',
-      'Title': 'DeMon Slayer',
+      'Title': 'Demon Slayer',
       'TitleYomi': '鬼滅の刃',
       'FirstMonth': '4',
       'FirstYear': '2019',
-      'Comment': 'A deMon hunting anime',
+      'Comment': 'A demon hunting anime',
     },
     {
       'TID': '6',
@@ -110,8 +110,89 @@ void AnimeListFactory() async {
       'FirstYear': '1999',
       'Comment': 'A hunter adventure anime',
     },
+    {
+      'TID': '14',
+      'Title': 'Black Clover',
+      'TitleYomi': 'ブラッククローバー',
+      'FirstMonth': '10',
+      'FirstYear': '2017',
+      'Comment': 'A magic fantasy anime',
+    },
+    {
+      'TID': '15',
+      'Title': 'Jujutsu Kaisen',
+      'TitleYomi': '呪術廻戦',
+      'FirstMonth': '10',
+      'FirstYear': '2020',
+      'Comment': 'A supernatural action anime',
+    },
+    {
+      'TID': '16',
+      'Title': 'Re:Zero',
+      'TitleYomi': 'Re:ゼロから始める異世界生活',
+      'FirstMonth': '4',
+      'FirstYear': '2016',
+      'Comment': 'A fantasy adventure anime',
+    },
+    {
+      'TID': '17',
+      'Title': 'Steins;Gate',
+      'TitleYomi': 'シュタインズ・ゲート',
+      'FirstMonth': '4',
+      'FirstYear': '2011',
+      'Comment': 'A science fiction anime',
+    },
+    {
+      'TID': '18',
+      'Title': 'Code Geass',
+      'TitleYomi': 'コードギアス',
+      'FirstMonth': '10',
+      'FirstYear': '2006',
+      'Comment': 'A mecha anime',
+    },
+    {
+      'TID': '19',
+      'Title': 'Gintama',
+      'TitleYomi': '銀魂',
+      'FirstMonth': '4',
+      'FirstYear': '2006',
+      'Comment': 'A comedy action anime',
+    },
+    {
+      'TID': '20',
+      'Title': 'One Punch Man',
+      'TitleYomi': 'ワンパンマン',
+      'FirstMonth': '10',
+      'FirstYear': '2015',
+      'Comment': 'A superhero parody anime',
+    },
+    {
+      'TID': '21',
+      'Title': 'Mob Psycho 100',
+      'TitleYomi': 'モブサイコ100',
+      'FirstMonth': '7',
+      'FirstYear': '2016',
+      'Comment': 'A supernatural comedy anime',
+    },
+    {
+      'TID': '22',
+      'Title': 'The Promised Neverland',
+      'TitleYomi': '約束のネバーランド',
+      'FirstMonth': '1',
+      'FirstYear': '2019',
+      'Comment': 'A dark fantasy thriller anime',
+    },
+    {
+      'TID': '23',
+      'Title': 'Dr. Stone',
+      'TitleYomi': 'ドクターストーン',
+      'FirstMonth': '7',
+      'FirstYear': '2019',
+      'Comment': 'A science adventure anime',
+    }
   ];
 
+  print('Adding data to Firestore...');
   // Add data to Firestore
   for (var anime in animeList) {
     await firestore.collection('titles').doc(anime['TID']).set(anime);
