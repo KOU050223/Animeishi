@@ -1,84 +1,170 @@
-import 'package:animeishi/ui/profile/view/profile_edit_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../auth/view/auth_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firestoreをインポート
+import 'package:animeishi/ui/profile/view/profile_edit_page.dart';  // ProfileEditPage のインポート
+import 'package:animeishi/ui/watch/view/watch_list.dart'; 
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String _username = '';
+  String _userId = '';
+  String _email = '';
+  List<String> _selectedGenres = [];
+
+  // Firestoreからユーザープロフィールを取得
+  Future<void> _loadUserProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userId = user.uid;
+        setState(() {
+          _userId = userId;
+          _email = user.email ?? '';
+        });
+
+        // Firestoreからユーザー情報を取得
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+        
+        if (userDoc.exists) {
+          setState(() {
+            _username = userDoc['username'] ?? '未設定';
+            _selectedGenres = List<String>.from(userDoc['selectedGenres'] ?? []); // ジャンルを取得
+          });
+        }
+      } catch (e) {
+        print('Failed to load user profile: $e');
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile(); // ユーザーのプロファイルを取得
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('プロフィール'),
-      ),
-      body: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Something went wrong'));
-          } else if (!snapshot.hasData) {
-            return Center(
+      appBar: AppBar(title: Text('名刺')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Card(
+            elevation: 5,
+            margin: EdgeInsets.all(20),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start, // 左揃え
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('ログインしていません'),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => AuthPage()),
-                      );
-                    },
-                    child: Text('ログインページへ'),
+                  // ユーザーネームを同じ行に表示
+                  Row(
+                    children: [
+                      Text(
+                        'ユーザーネーム: ',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        _username.isEmpty ? '未設定' : _username,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          } else {
-            User? user = snapshot.data;
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Welcome, ${user?.displayName ?? 'User'}'),
                   SizedBox(height: 20),
-                  Text('Email: ${user?.email ?? 'Not available'}'),
+
+                  // 選択されたジャンルを改行して表示
+                  Text(
+                    '選択されたジャンル:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    _selectedGenres.isEmpty ? 'なし' : _selectedGenres.join(', '),
+                    style: TextStyle(fontSize: 18),
+                    softWrap: true, // 自動的に改行される
+                    overflow: TextOverflow.ellipsis, // 文字が長すぎる場合、省略符号で表示
+                  ),
                   SizedBox(height: 20),
+
+                  // ユーザーIDを同じ行に表示
+                  Row(
+                    children: [
+                      Text(
+                        'ユーザーID: ',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        _userId.isEmpty ? '未設定' : _userId,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+
+                  // メールアドレスを同じ行に表示
+                  Row(
+                    children: [
+                      Text(
+                        'メールアドレス: ',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        _email.isEmpty ? '未設定' : _email,
+                        style: TextStyle(fontSize: 18),
+                        softWrap: true, // 自動的に改行される
+                        overflow: TextOverflow.ellipsis, // 文字が長すぎる場合、省略符号で表示
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+
+                  // プロフィール編集ボタン
                   ElevatedButton(
                     onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                    },
-                    child: Text('ログアウト'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => ProfileEditPage()),
+                          builder: (context) => ProfileEditPage(
+                            username: _username,
+                            selectedGenres: _selectedGenres,
+                            email: _email,  // パスワードは渡さない
+                          ),
+                        ),
                       );
-                    },
-                    child: Text('編集'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await FirebaseAuth.instance
-                            .sendPasswordResetEmail(email: user!.email!);
-                        print("${user.email!}へパスワードリセット用のメールを送信しました");
-                      } catch (e) {
-                        print(e);
+                      if (result != null) {
+                        setState(() {
+                          _username = result['username'];
+                          _selectedGenres = result['selectedGenres'];
+                          _email = result['email'];
+                        });
                       }
                     },
-                    child: const Text('パスワードリセット'),
+                    child: Text('プロフィールを編集'),
+                  ),
+                  
+                  // 視聴履歴ボタン
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 「視聴履歴」ボタンを押したら WatchListPage に遷移
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => WatchListPage()),
+                      );
+                    },
+                    child: Text('視聴履歴'),
                   ),
                 ],
               ),
-            );
-          }
-        },
+            ),
+          ),
+        ),
       ),
     );
   }

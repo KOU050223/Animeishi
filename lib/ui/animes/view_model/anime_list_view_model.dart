@@ -3,14 +3,65 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:collection/collection.dart';
 
+enum SortOrder {tid,year,name}
+
 class AnimeListViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _animeList = [];
   bool _isLoading = false;
   Set<String> _selectedAnime = {}; // 選択されたアニメのTIDを保持するセット
+  SortOrder _sortOrder = SortOrder.tid; //デフォルトはtid順
+  bool _isAscending = true; //デフォルトは昇順
 
   List<Map<String, dynamic>> get animeList => _animeList;
   bool get isLoading => _isLoading;
   Set<String> get selectedAnime => _selectedAnime; // 選択されたアニメのTIDを取得するゲッター
+  SortOrder get sortOrder => _sortOrder; //ソート順を取得するゲッター
+  bool get isAscending => _isAscending; //昇順 or 降順を取得
+  
+  //ソート順の変更
+  void setSortOrder(SortOrder order) {
+    _sortOrder = order;
+    sortAnimeList(); // ソートを適用
+  }
+
+  //昇順・降順を切り替える
+  void toggleSortOrder() {
+    _isAscending = !_isAscending;
+    sortAnimeList();
+  }
+
+  //ソート処理(昇順・降順対応)
+  void sortAnimeList() {
+    _animeList.sort((a, b) {
+      int compare = 0;
+      switch (_sortOrder) {
+        case SortOrder.tid:
+          compare = int.parse(a['tid'].toString()).compareTo(int.parse(b['tid'].toString()));
+          break;
+
+        case SortOrder.year:
+          //年と月の両方に対応
+          int aYear = int.tryParse(a['firstyear'].toString()) ?? 0;
+          int bYear = int.tryParse(b['firstyear'].toString()) ?? 0;
+          int aMonth = int.tryParse(a['firstmonth'].toString()) ?? 0;
+          int bMonth = int.tryParse(b['firstmonth'].toString()) ?? 0;
+
+          if (aYear != bYear) {
+            compare = aYear.compareTo(bYear); // まず年で比較
+          } else {
+            compare = aMonth.compareTo(bMonth); // 同じ年なら月で比較
+          }
+          break;
+
+
+        case SortOrder.name:
+          compare = a['title'].toString().compareTo(b['title'].toString()); // 文字列昇順
+          break;
+      }
+      return _isAscending ? compare : -compare; //昇順・降順の切り替え
+    });
+    notifyListeners();
+  }
 
   Future<void> initOfflineModeAndLoadCache() async {
     await FirebaseFirestore.instance.disableNetwork();
@@ -36,15 +87,9 @@ class AnimeListViewModel extends ChangeNotifier {
         };
       }).toList();
 
-      // ▼ ここでローカルのリストをソートする ▼
-      cacheList.sort((a, b) {
-        final aTid = int.tryParse(a['tid'].toString()) ?? 0;
-        final bTid = int.tryParse(b['tid'].toString()) ?? 0;
-        return aTid.compareTo(bTid); // 数値昇順
-      });
-
       _animeList = cacheList;
-      notifyListeners();
+      sortAnimeList(); //ソートの適用
+      notifyListeners(); 
     }
   }
 
@@ -71,13 +116,8 @@ class AnimeListViewModel extends ChangeNotifier {
       }).toList();
 
       // ▼ ここでサーバーから取得したリストをソートする ▼
-      newList.sort((a, b) {
-        final aTid = int.tryParse(a['tid'].toString()) ?? 0;
-        final bTid = int.tryParse(b['tid'].toString()) ?? 0;
-        return aTid.compareTo(bTid); // 数値昇順
-      });
-
       _animeList = newList;
+      sortAnimeList(); //ソートの適用
 
       // 選択されたアニメの情報を取得
       await loadSelectedAnime();
