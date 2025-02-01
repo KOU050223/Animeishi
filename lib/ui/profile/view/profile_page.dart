@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestoreをインポート
 import 'package:animeishi/ui/profile/view/profile_edit_page.dart';  // ProfileEditPage のインポート
+import 'package:animeishi/ui/watch/view/watch_list.dart'; 
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -86,6 +87,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   Text(
                     _selectedGenres.isEmpty ? 'なし' : _selectedGenres.join(', '),
                     style: TextStyle(fontSize: 18),
+                    softWrap: true, // 自動的に改行される
+                    overflow: TextOverflow.ellipsis, // 文字が長すぎる場合、省略符号で表示
                   ),
                   SizedBox(height: 20),
 
@@ -114,11 +117,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         _email.isEmpty ? '未設定' : _email,
                         style: TextStyle(fontSize: 18),
+                        softWrap: true, // 自動的に改行される
+                        overflow: TextOverflow.ellipsis, // 文字が長すぎる場合、省略符号で表示
                       ),
                     ],
                   ),
                   SizedBox(height: 20),
 
+                  // プロフィール編集ボタン
                   ElevatedButton(
                     onPressed: () async {
                       final result = await Navigator.push(
@@ -140,6 +146,19 @@ class _ProfilePageState extends State<ProfilePage> {
                       }
                     },
                     child: Text('プロフィールを編集'),
+                  ),
+                  
+                  // 視聴履歴ボタン
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 「視聴履歴」ボタンを押したら WatchListPage に遷移
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => WatchListPage()),
+                      );
+                    },
+                    child: Text('視聴履歴'),
                   ),
                 ],
               ),
