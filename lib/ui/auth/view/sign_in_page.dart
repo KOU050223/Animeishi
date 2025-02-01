@@ -1,3 +1,4 @@
+import 'package:animeishi/ui/auth/view/account_setting_page.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -104,7 +105,8 @@ class _AuthPage extends State<AuthPage> {
                           passwordController.clear();
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => HomePage()),
+                            MaterialPageRoute(
+                                builder: (context) => AccountSettingPage()),
                           );
                         }
                       } catch (e) {
