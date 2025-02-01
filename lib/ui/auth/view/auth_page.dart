@@ -53,8 +53,10 @@ class _AuthPageState extends State<AuthPage> {
                 onPressed: () async {
                   await FirebaseAuth.instance.signOut();
                   print('ログアウトしました');
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => HomePage()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EmailLoginPage()));
                 },
               ),
             ],
