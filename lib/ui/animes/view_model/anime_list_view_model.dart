@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AnimeListViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _animeList = [];
@@ -25,7 +26,7 @@ class AnimeListViewModel extends ChangeNotifier {
           cacheSnapshot.docs.map((doc) {
         return {
           'id': doc.id,
-          'tid': doc['TID'],
+          'tid': doc['TID'].toString(), // TIDをString型に変換
           'title': doc['Title'],
           'titleyomi': doc['TitleYomi'],
           'firstmonth': doc['FirstMonth'],
@@ -59,7 +60,7 @@ class AnimeListViewModel extends ChangeNotifier {
       final List<Map<String, dynamic>> newList = serverSnapshot.docs.map((doc) {
         return {
           'id': doc.id,
-          'tid': doc['TID'],
+          'tid': doc['TID'].toString(), // TIDをString型に変換
           'title': doc['Title'],
           'titleyomi': doc['TitleYomi'],
           'firstmonth': doc['FirstMonth'],
@@ -76,6 +77,10 @@ class AnimeListViewModel extends ChangeNotifier {
       });
 
       _animeList = newList;
+
+      // 選択されたアニメの情報を取得
+      await loadSelectedAnime();
+
       await FirebaseFirestore.instance.disableNetwork();
     } catch (e) {
       debugPrint('Error fetching from server: $e');
@@ -85,13 +90,165 @@ class AnimeListViewModel extends ChangeNotifier {
     }
   }
 
-  void selectAnime(String tid) {
-    selectedAnime.add(tid);
+  Future<void> selectAnime(String tid) async {
+    _selectedAnime.add(tid);
     notifyListeners();
   }
 
-  void deselectAnime(String tid) {
-    selectedAnime.remove(tid);
+  Future<void> deselectAnime(String tid) async {
+    _selectedAnime.remove(tid);
     notifyListeners();
+  }
+
+  Future<void> saveSelectedAnime() async {
+    final user = FirebaseAuth.instance.currentUser;
+    print('セーブ処理開始');
+    if (user == null) {
+      print('user is null');
+      return;
+    }
+
+    // ■ オフラインモードから書き込み用にオンラインへ切り替え
+    await FirebaseFirestore.instance.enableNetwork();
+
+    try {
+      // ▼ 以下はこれまでのバッチ書き込みロジックをそのまま使用
+      final userId = user.uid;
+      final List<WriteBatch> batches = [];
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      int batchSize = 0;
+
+      // Firestoreに選択されたアニメを保存
+      for (var tid in _selectedAnime) {
+        final docRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('selectedAnime')
+            .doc(tid);
+        batch.set(docRef, {'tid': tid});
+        batchSize++;
+
+        if (batchSize == 500) {
+          batches.add(batch);
+          batch = FirebaseFirestore.instance.batch();
+          batchSize = 0;
+        }
+      }
+
+      if (batchSize > 0) {
+        batches.add(batch);
+      }
+
+      // Firestoreから削除されたアニメを削除
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('selectedAnime')
+          .get();
+      batch = FirebaseFirestore.instance.batch();
+      batchSize = 0;
+
+      for (var doc in snapshot.docs) {
+        if (!_selectedAnime.contains(doc.id)) {
+          batch.delete(doc.reference);
+          batchSize++;
+
+          if (batchSize == 500) {
+            batches.add(batch);
+            batch = FirebaseFirestore.instance.batch();
+            batchSize = 0;
+          }
+        }
+      }
+
+      if (batchSize > 0) {
+        batches.add(batch);
+      }
+
+      print('セーブ処理中');
+      for (var b in batches) {
+        await b.commit(); // ← サーバーとやり取りするためオンライン必須
+      }
+      print('セーブ処理完了');
+    } catch (e) {
+      print('セーブ処理中にエラーが発生しました: $e');
+    } finally {
+      // ■ 書き込みが終わったら再びオフラインへ切り替え
+      await FirebaseFirestore.instance.disableNetwork();
+    }
+  }
+
+  Future<void> deleteSelectedAnime() async {
+    final user = FirebaseAuth.instance.currentUser;
+    print('削除処理開始');
+    if (user == null) {
+      print('user is null');
+      return;
+    }
+
+    // ■ オフラインモードから書き込み用にオンラインへ切り替え
+    await FirebaseFirestore.instance.enableNetwork();
+
+    try {
+      final userId = user.uid;
+      final List<WriteBatch> batches = [];
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      int batchSize = 0;
+
+      // 選択されたアニメを削除
+      for (var tid in _selectedAnime) {
+        final docRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('selectedAnime')
+            .doc(tid);
+        batch.delete(docRef);
+        batchSize++;
+
+        if (batchSize == 500) {
+          batches.add(batch);
+          batch = FirebaseFirestore.instance.batch();
+          batchSize = 0;
+        }
+      }
+
+      if (batchSize > 0) {
+        batches.add(batch);
+      }
+
+      // 実際に削除をコミット
+      for (var b in batches) {
+        await b.commit(); // ← サーバーとのやり取りを行うのでオンライン必須
+      }
+
+      // ローカルで選択されたアニメのセットをクリア
+      _selectedAnime.clear();
+      notifyListeners();
+      print('削除処理完了');
+    } catch (e) {
+      print('削除処理中にエラーが発生しました: $e');
+    } finally {
+      // ■ 削除が終わったら再びオフラインへ切り替え
+      await FirebaseFirestore.instance.disableNetwork();
+    }
+  }
+
+  Future<void> loadSelectedAnime() async {
+    final user = FirebaseAuth.instance.currentUser;
+    print('ロード処理開始');
+    if (user != null) {
+      final userId = user.uid;
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('selectedAnime')
+          .get();
+
+      _selectedAnime = snapshot.docs.map((doc) => doc.id).toSet();
+      notifyListeners();
+      print('ロード処理完了');
+    } else {
+      print('user is null');
+    }
   }
 }
