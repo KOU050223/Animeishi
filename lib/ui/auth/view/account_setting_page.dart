@@ -31,6 +31,10 @@ class _AccountSettingState extends State<AccountSettingPage> {
         await user.updateProfile(displayName: userName);
         await user.reload();
         print('ユーザー名が更新されました: ${user.displayName}');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
       } catch (e) {
         setState(() {
           errorMessage = e.toString();
