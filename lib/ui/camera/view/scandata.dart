@@ -6,45 +6,75 @@ class ScanDataWidget extends StatelessWidget {
   final BarcodeCapture? scandata;
   const ScanDataWidget({Key? key, this.scandata}) : super(key: key);
 
+  /// ユーザーデータを取得する
   Future<Map<String, dynamic>?> getUserData(String userId) async {
     try {
-      print('Firestore にアクセスします - userId: $userId');
-      DocumentSnapshot<Map<String, dynamic>> userDoc =
-          await FirebaseFirestore.instance.collection('users').doc(userId).get();
-
-      if (userDoc.exists) {
-        Map<String, dynamic>? data = userDoc.data(); // データ取得
-        print('ユーザーデータ取得成功: $data');
-        return data;
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (doc.exists) {
+        return doc.data();
       } else {
-        print('ユーザーが Firestore に存在しません - userId: $userId');
+        print('ユーザーが存在しません: $userId');
       }
     } catch (e) {
-      print('Firestore データ取得エラー: $e');
+      print('ユーザーデータ取得エラー: $e');
     }
     return null;
   }
 
-  Future<List<String>> getSelectedAnime(String userId) async {
+  /// ユーザーが選択したアニメの TID を取得する
+  Future<Set<String>> getSelectedAnimeTIDs(String userId) async {
     try {
-      QuerySnapshot<Map<String, dynamic>> animeCollection = await FirebaseFirestore.instance
+      final snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .collection('selectedAnime')
           .get();
 
-      List<String> animeIds = animeCollection.docs.map((doc) => doc.id).toList();
-      print('取得したアニメID: $animeIds');
-      return animeIds;
+      // 各ドキュメントのIDが TID として登録されていると仮定
+      return snapshot.docs.map((doc) => doc.id).toSet();
     } catch (e) {
-      print('アニメデータ取得時のエラー: $e');
-      return [];
+      print('selectedAnime 取得エラー: $e');
+      return {};
     }
+  }
+
+  /// 取得した TID に基づいて、アニメ詳細情報（ここではアニメ名）を取得する
+  Future<List<Map<String, dynamic>>> getAnimeDetails(Set<String> tids) async {
+    List<Map<String, dynamic>> animeList = [];
+    try {
+      // "titles" コレクションから全件取得（件数が多い場合は where クエリなどで絞ることを検討）
+      final snapshot =
+          await FirebaseFirestore.instance.collection('titles').get();
+      for (var doc in snapshot.docs) {
+        if (tids.contains(doc.id)) {
+          // 'Title' フィールドにアニメの名前が入っていると仮定
+          animeList.add({
+            'tid': doc.id,
+            'title': doc.data()['Title'] ?? 'タイトル未設定',
+          });
+        }
+      }
+    } catch (e) {
+      print('アニメ詳細取得エラー: $e');
+    }
+    return animeList;
+  }
+
+  /// ユーザーデータとアニメ詳細情報の両方を取得する
+  Future<List<dynamic>> fetchData(String userId) async {
+    final userData = await getUserData(userId);
+    final tids = await getSelectedAnimeTIDs(userId);
+    final animeDetails = await getAnimeDetails(tids);
+    return [userData, animeDetails];
   }
 
   @override
   Widget build(BuildContext context) {
-    String userId = scandata?.barcodes.first.rawValue ?? 'null';
+    // scandata から userId を取得（なければ 'null' を指定）
+    final userId = scandata?.barcodes.first.rawValue ?? 'null';
 
     return Scaffold(
       appBar: AppBar(
@@ -52,120 +82,77 @@ class ScanDataWidget extends StatelessWidget {
         title: const Text('スキャンの結果'),
       ),
       body: FutureBuilder<List<dynamic>>(
-        future: Future.wait([
-          getUserData(userId), // ユーザー情報
-          getSelectedAnime(userId), // アニメ情報
-        ]),
+        future: fetchData(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('エラーが発生しました'));
-          } else if (snapshot.hasData && snapshot.data != null) {
-            Map<String, dynamic>? userData = snapshot.data![0] as Map<String, dynamic>?;
-            List<String> animeIds = snapshot.data![1] as List<String>;
+            return const Center(child: Text('エラーが発生しました'));
+          } else if (snapshot.hasData) {
+            // snapshot.data[0] はユーザーデータ、[1] はアニメの詳細リスト
+            final Map<String, dynamic>? userData =
+                snapshot.data![0] as Map<String, dynamic>?;
+            final List<Map<String, dynamic>> animeList =
+                snapshot.data![1] as List<Map<String, dynamic>>;
 
             if (userData == null) {
-              return Center(child: Text('ユーザーデータが見つかりません'));
+              return const Center(child: Text('ユーザーデータが見つかりません'));
             }
 
-            String username = userData['username'] ?? '未設定';
-            String email = userData['email'] ?? '未設定';
-            List<String> selectedGenres = List<String>.from(userData['selectedGenres'] ?? []);
+            List<String> selectedGenres =
+                List<String>.from(userData['selectedGenres'] ?? []);
 
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Card(
-                  elevation: 5,
-                  margin: EdgeInsets.all(20),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, // 左揃え
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // ユーザーネーム
-                        Row(
-                          children: [
-                            Text(
-                              'ユーザーネーム: ',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              username,
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-
-                        // 選択されたジャンル
-                        Text(
-                          '選択されたジャンル:',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          selectedGenres.isEmpty ? 'なし' : selectedGenres.join(', '),
-                          style: TextStyle(fontSize: 18),
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 20),
-
-                        // ユーザーID
-                        Row(
-                          children: [
-                            Text(
-                              'ユーザーID: ',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              userId,
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-
-                        // メールアドレス
-                        Row(
-                          children: [
-                            Text(
-                              'メールアドレス: ',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              email,
-                              style: TextStyle(fontSize: 18),
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20),
-
-                        // アニメリスト
-                        Text(
-                          '選択されたアニメ:',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 10),
-                        animeIds.isEmpty
-                            ? Text('なし', style: TextStyle(fontSize: 18))
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: animeIds.map((id) => Text('アニメID: $id')).toList(),
-                              ),
-                      ],
-                    ),
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ユーザー情報の表示
+                  Text(
+                    'ユーザーネーム: ${userData['username'] ?? '未設定'}',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  // 選択されたジャンル
+                  const Text(
+                    '選択されたジャンル:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    selectedGenres.isEmpty ? 'なし' : selectedGenres.join(', '),
+                    style: const TextStyle(fontSize: 18),
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '視聴履歴:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  // アニメ詳細のリスト表示
+                  Expanded(
+                    child: animeList.isEmpty
+                        ? const Text('視聴履歴はありません')
+                        : ListView.builder(
+                            itemCount: animeList.length,
+                            itemBuilder: (context, index) {
+                              final anime = animeList[index];
+                              return ListTile(
+                                title: Text(anime['title']),
+                              );
+                            },
+                          ),
+                  ),
+                ],
               ),
             );
           } else {
-            return Center(child: Text('データが見つかりません'));
+            return const Center(child: Text('データが見つかりません'));
           }
         },
       ),
