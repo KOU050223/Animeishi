@@ -20,6 +20,46 @@ class AnimeListPage extends StatelessWidget {
           builder: (context, viewModel, child) {
             return Column(
               children: [
+                 // ▼ ソート順と昇降ボタンを追加 ▼
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("ソート順: "),
+                      DropdownButton<SortOrder>(
+                        value: viewModel.sortOrder, // 現在のソート順
+                        underline: SizedBox.shrink(), // 下線を非表示
+                        onChanged: (SortOrder? newValue) {
+                          if (newValue != null) {
+                            viewModel.setSortOrder(newValue); // ソート順を変更
+                          }
+                        },
+                        items: [
+                          DropdownMenuItem(
+                            value: SortOrder.tid,
+                            child: Text('TID順'),
+                          ),
+                          DropdownMenuItem(
+                            value: SortOrder.year,
+                            child: Text('年代順'),
+                          ),
+                          DropdownMenuItem(
+                            value: SortOrder.name,
+                            child: Text('名前順'),
+                          ),
+                        ],
+                      ),
+                      // ▼ 昇順・降順ボタン ▼
+                      IconButton(
+                        icon: Icon(viewModel.isAscending
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward),
+                        onPressed: viewModel.toggleSortOrder,
+                      ),
+                    ],
+                  ),
+                ),
                 // 「オンラインから取得」ボタン
                 Padding(
                   padding: const EdgeInsets.all(8.0),
