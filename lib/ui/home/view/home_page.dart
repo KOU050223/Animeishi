@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:animeishi/ui/auth/view/auth_page.dart';
 import 'package:animeishi/ui/camera/view/qr_page.dart';
-import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
+  final String qrData = "https://anime.bang-dream.com/avemujica/"; // テストデータ
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12,7 +15,6 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.login),
             onPressed: () {
-              // 認証ページに遷移する処理をここに書く
               Navigator.push(
                   context, MaterialPageRoute(builder: (context) => AuthPage()));
             },
@@ -23,7 +25,27 @@ class HomePage extends StatelessWidget {
         children: [
           Expanded(
             child: Center(
-              child: Text('ホーム画面のコンテンツ'),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'あなたの名刺QRコード',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  QrImageView(
+                    data: qrData,
+                    version: QrVersions.auto,
+                    size: 200.0,
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'このQRコードをスキャンして\nあなたの情報を共有しよう！',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
             ),
           ),
           BottomNavigationBar(
@@ -51,9 +73,8 @@ class HomePage extends StatelessWidget {
             ],
             backgroundColor: Colors.blueGrey,
             onTap: (index) {
-              // 各ボタンを押したときの処理をここに書く
               switch (index) {
-                case 2: //カメラ起動(QRアイコン)
+                case 2:
                   Navigator.push(
                     context,
                     MaterialPageRoute(
