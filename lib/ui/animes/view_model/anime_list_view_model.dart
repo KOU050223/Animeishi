@@ -29,20 +29,30 @@ class AnimeListViewModel extends ChangeNotifier {
     sortAnimeList();
   }
 
+  //ソート処理(昇順・降順対応)
   void sortAnimeList() {
     _animeList.sort((a, b) {
       int compare = 0;
       switch (_sortOrder) {
         case SortOrder.tid:
-          final aTid = int.tryParse(a['tid'].toString()) ?? 0;
-          final bTid = int.tryParse(b['tid'].toString()) ?? 0;
-          compare = aTid.compareTo(bTid);
+          compare = int.parse(a['tid'].toString()).compareTo(int.parse(b['tid'].toString()));
           break;
+
         case SortOrder.year:
-          final aYear = int.tryParse(a['firstyear'].toString()) ?? 0;
-          final bYear = int.tryParse(b['firstyear'].toString()) ?? 0;
-          compare = aYear.compareTo(bYear);
+          //年と月の両方に対応
+          int aYear = int.tryParse(a['firstyear'].toString()) ?? 0;
+          int bYear = int.tryParse(b['firstyear'].toString()) ?? 0;
+          int aMonth = int.tryParse(a['firstmonth'].toString()) ?? 0;
+          int bMonth = int.tryParse(b['firstmonth'].toString()) ?? 0;
+
+          if (aYear != bYear) {
+            compare = aYear.compareTo(bYear); // まず年で比較
+          } else {
+            compare = aMonth.compareTo(bMonth); // 同じ年なら月で比較
+          }
           break;
+
+
         case SortOrder.name:
           compare = a['title'].toString().compareTo(b['title'].toString()); // 文字列昇順
           break;
