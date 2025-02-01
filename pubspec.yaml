@@ -40,6 +40,7 @@ dependencies:
   firebase_ui_auth: ^1.16.1
   cloud_firestore: ^5.6.2
   camera: ^0.9.4+19
+  collection: ^1.19.0
 
 dev_dependencies:
   flutter_test:
