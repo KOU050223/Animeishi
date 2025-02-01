@@ -35,26 +35,33 @@ class _SNSPageState extends State<SNSPage> {
   // フレンドリストを取得
   Future<void> _fetchFriends() async {
     try {
-      final snapshot = await FirebaseFirestore.instance
+      final userDoc = await FirebaseFirestore.instance
           .collection('users')
-          .get();
+          .doc(_currentUserId) // 現在のユーザーIDでドキュメントを取得
+          .collection('meishies')
+          .get(); // meishies サブコレクションを取得
 
       List<String> friendIds = [];
       List<String> friendNames = [];
       List<List<String>> friendGenres = [];
 
-      snapshot.docs.forEach((doc) {
-        final userId = doc.id;
-        final username = doc['username'] ?? '未設定';  // ユーザーネームがない場合「未設定」
-        final genres = List<String>.from(doc['selectedGenres'] ?? []);  // 選択したジャンルを取得
+      for (var doc in userDoc.docs) {
+        final friendId = doc.id; // meishies コレクション内のフレンドID
+        final friendDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(friendId) // フレンドIDを使ってユーザー情報を取得
+            .get();
 
-        // 自分のユーザーIDと一致しない場合のみリストに追加
-        if (userId != _currentUserId) {
-          friendIds.add(userId);
-          friendNames.add(username);
+        if (friendDoc.exists) {
+          final friendName = friendDoc['username'] ?? '未設定';
+          final genres = List<String>.from(friendDoc['selectedGenres'] ?? []); // 選択したジャンルを取得
+
+          // 取得した情報をリストに追加
+          friendIds.add(friendId);
+          friendNames.add(friendName);
           friendGenres.add(genres);
         }
-      });
+      }
 
       setState(() {
         _friendIds = friendIds;
