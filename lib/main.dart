@@ -10,10 +10,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   // Firestoreエミュレータに接続
-  FirebaseFirestore.instance.settings = const Settings(
-    host: 'localhost:8080',
-    sslEnabled: false,
-    persistenceEnabled: false,
-  );
+  // FirebaseFirestore.instance.settings = const Settings(
+  //   host: 'localhost:8080',
+  //   sslEnabled: false,
+  //   persistenceEnabled: false,
+  // );
   runApp(const MyApp());
 }

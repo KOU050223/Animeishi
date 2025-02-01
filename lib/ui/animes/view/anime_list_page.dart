@@ -7,7 +7,11 @@ class AnimeListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AnimeListViewModel(),
+      create: (_) {
+        final viewModel = AnimeListViewModel();
+        viewModel.fetchFromServer(); // 初期化時にアニメリストと選択されたアニメをロード
+        return viewModel;
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text('Anime List'),
@@ -44,7 +48,28 @@ class AnimeListPage extends StatelessWidget {
                       : const Icon(Icons.cloud_download),
                   label: Text(viewModel.isLoading ? '読み込み中...' : 'テストデータを生成'),
                 ),
-
+                // 「登録」ボタン
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton.icon(
+                    onPressed: viewModel.isLoading
+                        ? null
+                        : viewModel.saveSelectedAnime,
+                    icon: const Icon(Icons.save),
+                    label: const Text('登録'),
+                  ),
+                ),
+                // 「削除」ボタン
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton.icon(
+                    onPressed: viewModel.isLoading
+                        ? null
+                        : viewModel.deleteSelectedAnime,
+                    icon: const Icon(Icons.delete),
+                    label: const Text('削除'),
+                  ),
+                ),
                 // アニメリスト表示
                 Expanded(
                   child: viewModel.animeList.isEmpty
@@ -60,12 +85,18 @@ class AnimeListPage extends StatelessWidget {
                             final firstYear = anime['firstyear'] ?? '';
                             final comment = anime['comment'] ?? '';
 
-                            return ListTile(
+                            return CheckboxListTile(
                               title: Text('$title ($tid)'),
                               subtitle: Text('$firstYear年'
-                                  '$firstMonth月'
-                                  // 'Comment: $comment',
-                                  ),
+                                  '$firstMonth月'),
+                              value: viewModel.selectedAnime.contains(tid),
+                              onChanged: (bool? value) {
+                                if (value == true) {
+                                  viewModel.selectAnime(tid);
+                                } else {
+                                  viewModel.deselectAnime(tid);
+                                }
+                              },
                             );
                           },
                         ),
