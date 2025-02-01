@@ -7,9 +7,12 @@ import 'package:animeishi/ui/profile/view/profile_page.dart';
 import 'package:animeishi/ui/camera/view/qr_page.dart';
 
 // 標準
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class HomePage extends StatelessWidget {
-  final String qrData = "https://anime.bang-dream.com/avemujica/"; // テストデータ
+  final user = FirebaseAuth.instance.currentUser;
+  String get qrData => user?.uid ?? "No UiD"; // テストデータ
 
   @override
   Widget build(BuildContext context) {
