@@ -20,7 +20,7 @@ class AnimeListPage extends StatelessWidget {
           builder: (context, viewModel, child) {
             return Column(
               children: [
-                 // ▼ ソート順と昇降ボタンを追加 ▼
+                // ▼ ソート順と昇降ボタンを追加 ▼
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
@@ -75,20 +75,7 @@ class AnimeListPage extends StatelessWidget {
                         : const Icon(Icons.cloud_download),
                     label: Text(viewModel.isLoading ? '読み込み中...' : 'オンラインから取得'),
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed:
-                      viewModel.isLoading ? null : () => AnimeListFactory(),
-                  icon: viewModel.isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.cloud_download),
-                  label: Text(viewModel.isLoading ? '読み込み中...' : 'テストデータを生成'),
-                ),
-                // 「登録」ボタン
+                ), // 「登録」ボタン
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton.icon(
