@@ -4,9 +4,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AnimeListViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _animeList = [];
   bool _isLoading = false;
+  Set<String> _selectedAnime = {}; // 選択されたアニメのTIDを保持するセット
 
   List<Map<String, dynamic>> get animeList => _animeList;
   bool get isLoading => _isLoading;
+  Set<String> get selectedAnime => _selectedAnime; // 選択されたアニメのTIDを取得するゲッター
 
   Future<void> initOfflineModeAndLoadCache() async {
     await FirebaseFirestore.instance.disableNetwork();
@@ -81,5 +83,15 @@ class AnimeListViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void selectAnime(String tid) {
+    selectedAnime.add(tid);
+    notifyListeners();
+  }
+
+  void deselectAnime(String tid) {
+    selectedAnime.remove(tid);
+    notifyListeners();
   }
 }

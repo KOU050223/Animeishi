@@ -60,12 +60,18 @@ class AnimeListPage extends StatelessWidget {
                             final firstYear = anime['firstyear'] ?? '';
                             final comment = anime['comment'] ?? '';
 
-                            return ListTile(
+                            return CheckboxListTile(
                               title: Text('$title ($tid)'),
                               subtitle: Text('$firstYear年'
-                                  '$firstMonth月'
-                                  // 'Comment: $comment',
-                                  ),
+                                  '$firstMonth月'),
+                              value: viewModel.selectedAnime.contains(tid),
+                              onChanged: (bool? value) {
+                                if (value == true) {
+                                  viewModel.selectAnime(tid);
+                                } else {
+                                  viewModel.deselectAnime(tid);
+                                }
+                              },
                             );
                           },
                         ),
