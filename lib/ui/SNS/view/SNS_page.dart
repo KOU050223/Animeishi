@@ -1,8 +1,7 @@
-// 必要なimport文を先頭に移動
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:animeishi/ui/SNS/view/SNS_edit_page.dart';  // SNSEditPageへのインポート
+import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuthをインポート
+import 'package:animeishi/ui/SNS/view/friend_watch_list_page.dart'; // FriendWatchListPage のインポート
 
 class SNSPage extends StatefulWidget {
   @override
@@ -10,118 +9,131 @@ class SNSPage extends StatefulWidget {
 }
 
 class _SNSPageState extends State<SNSPage> {
-  String _username = '';
-  List<String> _selectedGenres = [];
+  List<String> _friendIds = [];  // フレンドの userId を格納
+  List<String> _friendNames = []; // フレンドの名前
+  List<List<String>> _friendGenres = []; // フレンドが選んだジャンルのリスト
 
-  // Firestoreからユーザープロフィールを取得
-  Future<void> _loadUserProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        final userId = user.uid;
-        final docSnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .get();
-
-        if (docSnapshot.exists) {
-          final userData = docSnapshot.data() as Map<String, dynamic>;
-          setState(() {
-            _username = userData['username'] ?? '';
-            _selectedGenres = List<String>.from(userData['selectedGenres'] ?? []);
-          });
-        }
-      } catch (e) {
-        print('Failed to load user profile: $e');
-      }
-    }
-  }
-
-  // ユーザープロフィールをFirestoreに保存
-  Future<void> _saveUserProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        final userId = user.uid;
-        await FirebaseFirestore.instance.collection('users').doc(userId).set({
-          'username': _username,
-          'selectedGenres': _selectedGenres,
-        }, SetOptions(merge: true));  // 上書きせず、マージする
-      } catch (e) {
-        print('Failed to save user profile: $e');
-      }
-    }
-  }
+  String _currentUserId = ''; // 現在のユーザーIDを格納
 
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();  // アプリ起動時にFirestoreからユーザープロフィールをロード
+    _getCurrentUser(); // 現在のユーザーIDを取得
+    _fetchFriends();
   }
 
-  // プロフィールを更新
-  void updateProfile(String username, List<String> selectedGenres) {
-    setState(() {
-      _username = username;
-      _selectedGenres = selectedGenres.isEmpty ? ['なし'] : selectedGenres; // 変更：選択されていない場合「なし」を自動選択
-    });
-    _saveUserProfile();  // プロフィールをFirestoreに保存
+  // 現在のユーザーIDを取得
+  Future<void> _getCurrentUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _currentUserId = user.uid;  // 現在のユーザーIDを保存
+      });
+    }
+  }
+
+  // フレンドリストを取得
+  Future<void> _fetchFriends() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .get();
+
+      List<String> friendIds = [];
+      List<String> friendNames = [];
+      List<List<String>> friendGenres = [];
+
+      snapshot.docs.forEach((doc) {
+        final userId = doc.id;
+        final username = doc['username'] ?? '未設定';  // ユーザーネームがない場合「未設定」
+        final genres = List<String>.from(doc['selectedGenres'] ?? []);  // 選択したジャンルを取得
+
+        // 自分のユーザーIDと一致しない場合のみリストに追加
+        if (userId != _currentUserId) {
+          friendIds.add(userId);
+          friendNames.add(username);
+          friendGenres.add(genres);
+        }
+      });
+
+      setState(() {
+        _friendIds = friendIds;
+        _friendNames = friendNames;
+        _friendGenres = friendGenres;
+      });
+    } catch (e) {
+      print('Failed to fetch friends: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('名刺')),
-      body: Center(
-        child: Card(
-          elevation: 5,
-          margin: EdgeInsets.all(20),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'ユーザーネーム:',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      appBar: AppBar(title: Text('SNSページ')),
+      body: ListView.builder(
+        itemCount: _friendIds.length,
+        itemBuilder: (context, index) {
+          final friendId = _friendIds[index];
+          final friendName = _friendNames[index];
+          final friendGenres = _friendGenres[index];
+
+          return GestureDetector(
+            onTap: () {
+              // 名刺をタップしたときにフレンドの閲覧履歴ページに遷移
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FriendWatchListPage(userId: friendId),  // FriendWatchListPageにuserIdを渡す
                 ),
-                SizedBox(height: 10),
-                Text(
-                  _username.isEmpty ? '未設定' : _username, // 空の場合は「未設定」を表示
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+              );
+            },
+            child: Card(
+              margin: EdgeInsets.all(8.0),
+              elevation: 4.0,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,  // 左揃え
+                  children: [
+                    // ユーザーネームを表示
+                    Text(
+                      friendName,
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,  // 長すぎる場合は省略する
+                      maxLines: 1,  // 1行に収める
+                    ),
+                    SizedBox(height: 8.0),
+                    
+                    // ユーザーIDを表示
+                    Text(
+                      'ユーザーID: $friendId',
+                      style: TextStyle(fontSize: 16),
+                      overflow: TextOverflow.ellipsis,  // 長すぎる場合は省略する
+                      maxLines: 1,  // 1行に収める
+                    ),
+                    SizedBox(height: 8.0),
+
+                    // 選択されたジャンルを表示
+                    Text(
+                      '選択ジャンル: ${friendGenres.isEmpty ? 'なし' : friendGenres.join(', ')}',
+                      style: TextStyle(fontSize: 16),
+                      softWrap: true,  // テキストが長い場合、自動で改行する
+                      overflow: TextOverflow.ellipsis,  // 長すぎる場合は省略する
+                    ),
+                    SizedBox(height: 16.0),
+
+                    // サブタイトルと視聴履歴ボタン
+                    Text(
+                      'タップして閲覧履歴を見る',
+                      style: TextStyle(fontSize: 16, color: Colors.blue),
+                    ),
+                    SizedBox(height: 8.0),
+                  ],
                 ),
-                SizedBox(height: 20),
-                Text(
-                  '選択されたジャンル:',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  _selectedGenres.isEmpty ? 'なし' : _selectedGenres.join(', '),
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SNSEditPage(
-                          username: _username,
-                          selectedGenres: _selectedGenres,
-                        ),
-                      ),
-                    );
-                    if (result != null) {
-                      updateProfile(result['username'], result['selectedGenres']);
-                    }
-                  },
-                  child: Text('名刺を編集'),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
