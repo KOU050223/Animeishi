@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // FirebaseAuthをインポート
-import 'package:animeishi/ui/SNS/view/friend_watch_list_page.dart'; // FriendWatchListPage のインポート
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:animeishi/ui/SNS/view/friend_watch_list_page.dart';
 import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 
 class SNSPage extends StatefulWidget {
@@ -10,54 +10,51 @@ class SNSPage extends StatefulWidget {
 }
 
 class _SNSPageState extends State<SNSPage> {
-  List<String> _friendIds = [];  // フレンドの userId を格納
-  List<String> _friendNames = []; // フレンドの名前
-  List<List<String>> _friendGenres = []; // フレンドが選んだジャンルのリスト
+  List<String> _friendIds = [];
+  List<String> _friendNames = [];
+  List<List<String>> _friendGenres = [];
 
-  String _currentUserId = ''; // 現在のユーザーIDを格納
+  String _currentUserId = '';
 
   @override
   void initState() {
     super.initState();
-    _getCurrentUser(); // 現在のユーザーIDを取得
+    _getCurrentUser();
     _fetchFriends();
   }
 
-  // 現在のユーザーIDを取得
   Future<void> _getCurrentUser() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       setState(() {
-        _currentUserId = user.uid;  // 現在のユーザーIDを保存
+        _currentUserId = user.uid;
       });
     }
   }
 
-  // フレンドリストを取得
   Future<void> _fetchFriends() async {
     try {
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
-          .doc(_currentUserId) // 現在のユーザーIDでドキュメントを取得
+          .doc(_currentUserId)
           .collection('meishies')
-          .get(); // meishies サブコレクションを取得
+          .get();
 
       List<String> friendIds = [];
       List<String> friendNames = [];
       List<List<String>> friendGenres = [];
 
       for (var doc in userDoc.docs) {
-        final friendId = doc.id; // meishies コレクション内のフレンドID
+        final friendId = doc.id;
         final friendDoc = await FirebaseFirestore.instance
             .collection('users')
-            .doc(friendId) // フレンドIDを使ってユーザー情報を取得
+            .doc(friendId)
             .get();
 
         if (friendDoc.exists) {
           final friendName = friendDoc['username'] ?? '未設定';
-          final genres = List<String>.from(friendDoc['selectedGenres'] ?? []); // 選択したジャンルを取得
+          final genres = List<String>.from(friendDoc['selectedGenres'] ?? []);
 
-          // 取得した情報をリストに追加
           friendIds.add(friendId);
           friendNames.add(friendName);
           friendGenres.add(genres);
@@ -72,6 +69,58 @@ class _SNSPageState extends State<SNSPage> {
     } catch (e) {
       print('Failed to fetch friends: $e');
     }
+  }
+
+  Future<void> _deleteFriend(String friendId) async {
+    try {
+      // Firestore からフレンドを削除
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_currentUserId)
+          .collection('meishies')
+          .doc(friendId)
+          .delete();
+
+      // ローカルリストから削除
+      setState(() {
+        final index = _friendIds.indexOf(friendId);
+        _friendIds.removeAt(index);
+        _friendNames.removeAt(index);
+        _friendGenres.removeAt(index);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('フレンドを削除しました')),
+      );
+    } catch (e) {
+      print('Failed to delete friend: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('削除に失敗しました')),
+      );
+    }
+  }
+
+  void _showDeleteConfirmationDialog(String friendId, String friendName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('削除確認'),
+        content: Text('$friendName を削除しますか？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), // キャンセル
+            child: Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // ダイアログを閉じる
+              _deleteFriend(friendId); // フレンド削除
+            },
+            child: Text('削除'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -97,59 +146,61 @@ class _SNSPageState extends State<SNSPage> {
           final friendName = _friendNames[index];
           final friendGenres = _friendGenres[index];
 
-          return GestureDetector(
-            onTap: () {
-              // 名刺をタップしたときにフレンドの閲覧履歴ページに遷移
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FriendWatchListPage(userId: friendId),  // FriendWatchListPageにuserIdを渡す
-                ),
-              );
-            },
-            child: Card(
-              margin: EdgeInsets.all(8.0),
-              elevation: 4.0,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,  // 左揃え
-                  children: [
-                    // ユーザーネームを表示
-                    Text(
-                      friendName,
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,  // 長すぎる場合は省略する
-                      maxLines: 1,  // 1行に収める
-                    ),
-                    SizedBox(height: 8.0),
-                    
-                    // ユーザーIDを表示
-                    Text(
-                      'ユーザーID: $friendId',
-                      style: TextStyle(fontSize: 16),
-                      overflow: TextOverflow.ellipsis,  // 長すぎる場合は省略する
-                      maxLines: 1,  // 1行に収める
-                    ),
-                    SizedBox(height: 8.0),
-
-                    // 選択されたジャンルを表示
-                    Text(
-                      '選択ジャンル: ${friendGenres.isEmpty ? 'なし' : friendGenres.join(', ')}',
-                      style: TextStyle(fontSize: 16),
-                      softWrap: true,  // テキストが長い場合、自動で改行する
-                      overflow: TextOverflow.ellipsis,  // 長すぎる場合は省略する
-                    ),
-                    SizedBox(height: 16.0),
-
-                    // サブタイトルと視聴履歴ボタン
-                    Text(
-                      'タップして閲覧履歴を見る',
-                      style: TextStyle(fontSize: 16, color: Colors.blue),
-                    ),
-                    SizedBox(height: 8.0),
-                  ],
-                ),
+          return Card(
+            margin: EdgeInsets.all(8.0),
+            elevation: 4.0,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    friendName,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  SizedBox(height: 8.0),
+                  Text(
+                    'ユーザーID: $friendId',
+                    style: TextStyle(fontSize: 16),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  SizedBox(height: 8.0),
+                  Text(
+                    '選択ジャンル: ${friendGenres.isEmpty ? 'なし' : friendGenres.join(', ')}',
+                    style: TextStyle(fontSize: 16),
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FriendWatchListPage(userId: friendId),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          '閲覧履歴を見る',
+                          style: TextStyle(fontSize: 16, color: Colors.blue),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () =>
+                            _showDeleteConfirmationDialog(friendId, friendName),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           );

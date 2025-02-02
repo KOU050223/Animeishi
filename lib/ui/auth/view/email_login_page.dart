@@ -11,13 +11,10 @@ class EmailLoginPage extends StatefulWidget {
 }
 
 class _EmailLoginPage extends State<EmailLoginPage> {
-  String email = '';
-  String password = '';
-  bool hidePassword = true;
-  String errorMessage = '';
-
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool hidePassword = true;
+  String errorMessage = '';
 
   @override
   void dispose() {
@@ -26,151 +23,143 @@ class _EmailLoginPage extends State<EmailLoginPage> {
     super.dispose();
   }
 
+  Future<void> _login() async {
+    try {
+      final User? user = (await FirebaseAuth.instance.signInWithEmailAndPassword(
+              email: emailController.text, password: passwordController.text))
+          .user;
+
+      if (user != null) {
+        print("ログインしました ${user.email}, ${user.uid}");
+
+        emailController.clear();
+        passwordController.clear();
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'メールアドレスまたはパスワードが間違っています';
+      });
+      print(e);
+    }
+  }
+
+  Future<void> _testLogin() async {
+    try {
+      emailController.text = 'test@test.com';
+      passwordController.text = 'password';
+
+      final User? user = (await FirebaseAuth.instance.signInWithEmailAndPassword(
+              email: emailController.text, password: passwordController.text))
+          .user;
+
+      if (user != null) {
+        print("ログインしました ${user.email}, ${user.uid}");
+
+        emailController.clear();
+        passwordController.clear();
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'メールアドレスまたはパスワードが間違っています';
+      });
+      print(e);
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text);
+      print("${emailController.text}へパスワードリセット用のメールを送信しました");
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: BackgroundAnimation1(
-      size: MediaQuery.of(context).size,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Login',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+      body: BackgroundAnimation1(
+        size: MediaQuery.of(context).size,
+        child: SingleChildScrollView( // スクロール可能に変更
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 50),
+                const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              TextFormField(
-                decoration: const InputDecoration(
-                  icon: Icon(Icons.mail),
-                  hintText: 'hogehoge@email.com',
-                  labelText: 'Email Address',
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    icon: Icon(Icons.mail),
+                    hintText: 'hogehoge@email.com',
+                    labelText: 'Email Address',
+                  ),
                 ),
-                onChanged: (String value) {
-                  setState(() {
-                    email = value;
-                  });
-                },
-              ),
-              TextFormField(
-                obscureText: hidePassword,
-                decoration: InputDecoration(
-                  icon: const Icon(Icons.lock),
-                  labelText: 'Password',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      hidePassword ? Icons.visibility_off : Icons.visibility,
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: passwordController,
+                  obscureText: hidePassword,
+                  decoration: InputDecoration(
+                    icon: const Icon(Icons.lock),
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        hidePassword ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          hidePassword = !hidePassword;
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        hidePassword = !hidePassword;
-                      });
-                    },
                   ),
                 ),
-                onChanged: (String value) {
-                  setState(() {
-                    password = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 15),
-              ElevatedButton(
-                child: const Text('ログイン'),
-                onPressed: () async {
-                  try {
-                    // メール/パスワードでログイン
-                    final User? user = (await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                                email: email, password: password))
-                        .user;
-                    if (user != null) {
-                      print("ログインしました　${user.email} , ${user.uid}");
-                      setState(() {
-                        email = '';
-                        password = '';
-                      });
-                      emailController.clear();
-                      passwordController.clear();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
-                      );
-                    }
-                  } catch (e) {
-                    // エラーが発生した場合
-                    setState(() {
-                      errorMessage = 'メールアドレスまたはパスワードが間違っています';
-                    });
-                    print(e);
-                  }
-                },
-              ),
-              // テストログイン用のボタン(!!!!!後で消す!!!!!)
-              ElevatedButton(
-                child: const Text('テストログイン'),
-                onPressed: () async {
-                  try {
-                    setState(() {
-                      // テスト用のメールアドレスとパスワード
-                      email = 'test@test.com';
-                      password = 'password';
-                    });
-                    // メール/パスワードでログイン
-                    final User? user = (await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                                email: email, password: password))
-                        .user;
-                    if (user != null) {
-                      print("ログインしました　${user.email} , ${user.uid}");
-                      setState(() {
-                        email = '';
-                        password = '';
-                      });
-                      emailController.clear();
-                      passwordController.clear();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
-                      );
-                    }
-                  } catch (e) {
-                    // エラーが発生した場合
-                    setState(() {
-                      errorMessage = 'メールアドレスまたはパスワードが間違っています';
-                    });
-                    print(e);
-                  }
-                },
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  try {
-                    await FirebaseAuth.instance
-                        .sendPasswordResetEmail(email: email);
-                    print("${email}へパスワードリセット用のメールを送信しました");
-                  } catch (e) {
-                    print(e);
-                  }
-                },
-                child: const Text('パスワードリセット'),
-              ),
-              if (errorMessage.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Text(
-                    errorMessage,
-                    style: TextStyle(color: Colors.red),
-                  ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  child: const Text('ログイン'),
+                  onPressed: _login,
                 ),
-            ],
+                ElevatedButton(
+                  child: const Text('テストログイン'),
+                  onPressed: _testLogin,
+                ),
+                ElevatedButton(
+                  onPressed: _resetPassword,
+                  child: const Text('パスワードリセット'),
+                ),
+                if (errorMessage.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Text(
+                      errorMessage,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 }
