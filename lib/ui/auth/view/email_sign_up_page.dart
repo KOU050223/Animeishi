@@ -38,6 +38,13 @@ class _EmailSignUpState extends State<EmailSignUpPage> {
       //   'createdAt': FieldValue.serverTimestamp(),
       //   'username': '',
       // });
+      // Firestoreにユーザードキュメントを作成
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'email': email,
+        'createdAt': FieldValue.serverTimestamp(),
+        'username': '',
+        'selectedGenres': [],
+      });
 
       // 空の`selectedAnime`コレクションを作成
       await FirebaseFirestore.instance
