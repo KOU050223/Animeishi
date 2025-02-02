@@ -3,6 +3,7 @@ import 'package:animeishi/ui/auth/view/auth_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../components/background_animation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AccountSettingPage extends StatefulWidget {
   const AccountSettingPage({Key? key}) : super(key: key);
@@ -30,7 +31,14 @@ class _AccountSettingState extends State<AccountSettingPage> {
       try {
         await user.updateProfile(displayName: userName);
         await user.reload();
-        print('ユーザー名が更新されました: ${user.displayName}');
+        // Firestoreにユーザードキュメントを作成
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'email': user.email,
+          'createdAt': FieldValue.serverTimestamp(),
+          'username': userName,
+          'selectedGenres': [],
+        });
+        print('ユーザー名が更新されました: ${userName}');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),

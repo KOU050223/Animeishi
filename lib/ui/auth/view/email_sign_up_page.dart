@@ -4,6 +4,7 @@ import 'package:animeishi/ui/auth/view/auth_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../components/background_animation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmailSignUpPage extends StatefulWidget {
   const EmailSignUpPage({Key? key}) : super(key: key);
@@ -27,6 +28,44 @@ class _EmailSignUpState extends State<EmailSignUpPage> {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> createUserDocument(String userId) async {
+    try {
+      // // Firestoreにユーザードキュメントを作成
+      // await FirebaseFirestore.instance.collection('users').doc(userId).set({
+      //   'email': email,
+      //   'createdAt': FieldValue.serverTimestamp(),
+      //   'username': '',
+      // });
+
+      // 空の`selectedAnime`コレクションを作成
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('selectedAnime')
+          .doc('0')
+          .set({});
+
+      // 空の`meishies`コレクションを作成
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('meishies')
+          .doc('Tr02PKzArJexjIRw4bWjBxseENH3')
+          .set({});
+
+      // await FirebaseFirestore.instance
+      //     .collection('users')
+      //     .doc(userId)
+      //     .collection('meishies')
+      //     .doc('dummy')
+      //     .delete();
+
+      print('ユーザードキュメントとコレクションを作成しました');
+    } catch (e) {
+      print('ユーザードキュメントの作成中にエラーが発生しました: $e');
+    }
   }
 
   @override
@@ -95,12 +134,14 @@ class _EmailSignUpState extends State<EmailSignUpPage> {
                                 .createUserWithEmailAndPassword(
                                     email: email, password: password))
                             .user;
-                        if (user != null)
+                        if (user != null) {
                           print("ユーザ登録しました ${user.email} , ${user.uid}");
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => AccountSettingPage()));
+                          await createUserDocument(user.uid);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AccountSettingPage()));
+                        }
                       } catch (e) {
                         // エラーが発生した場合
                         setState(() {
