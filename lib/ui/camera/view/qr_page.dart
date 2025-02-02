@@ -26,11 +26,22 @@ class _ScannerWidgetState extends State<ScannerWidget>
 
       String currentUserId = currentUser.uid; // 現在ログインしているユーザーID
 
+      // 自分のリストに相手を保存
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId) // 現在ログインしているユーザーの Firestore ドキュメント
           .collection('meishies')
           .doc(scannedUserId) // 読み取ったユーザーの ID をドキュメント ID に
+          .set({
+        'scanned_at': FieldValue.serverTimestamp(), // スキャンした日時
+      });
+
+      // 相手のリストに自分を保存
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(scannedUserId) // 現在ログインしているユーザーの Firestore ドキュメント
+          .collection('meishies')
+          .doc(currentUserId) // 読み取ったユーザーの ID をドキュメント ID に
           .set({
         'scanned_at': FieldValue.serverTimestamp(), // スキャンした日時
       });
