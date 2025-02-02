@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_model/anime_list_view_model.dart';
 import 'package:animeishi/model/factory/anime_list_factory.dart';
+import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート
 
 class AnimeListPage extends StatelessWidget {
   @override
@@ -14,7 +15,17 @@ class AnimeListPage extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Anime List'),
+          title: Text('アニメリスト'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              // 戻るボタンを押したときにHomePageに遷移
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()), // HomePageに遷移
+              );
+            },
+          ),
         ),
         body: Consumer<AnimeListViewModel>(
           builder: (context, viewModel, child) {

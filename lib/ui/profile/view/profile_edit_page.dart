@@ -21,7 +21,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   late List<String> _selectedGenres;
   late String _email;
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController(); // ユーザーネームのコントローラーを追加
+  final TextEditingController _usernameController =
+      TextEditingController(); // ユーザーネームのコントローラーを追加
 
   final List<String> _allGenres = [
     'SF/ファンタジー',
@@ -61,6 +62,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           await user.updateEmail(_emailController.text);
         }
 
+        await user.updateProfile(
+            displayName: _usernameController.text); // ユーザーネームを更新
+
         // プロフィール保存
         Navigator.pop(context, {
           'username': _usernameController.text, // ユーザーネームもコントローラーから取得
@@ -68,9 +72,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           'email': _emailController.text,
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('プロフィールが更新されました')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('プロフィールが更新されました')));
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('エラー: プロフィール更新に失敗しました')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('エラー: プロフィール更新に失敗しました')));
       }
     }
   }
@@ -83,14 +89,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            Text('ユーザーネーム', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('ユーザーネーム',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             TextField(
               controller: _usernameController, // ユーザーネームに現在の名前を表示
               onChanged: (value) => _username = value,
               decoration: InputDecoration(hintText: 'ユーザーネームを入力'),
             ),
             SizedBox(height: 20),
-            Text('ジャンルを選択', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('ジャンルを選択',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Wrap(
               spacing: 8.0,
               children: _allGenres.map((genre) {
@@ -110,14 +118,17 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               }).toList(),
             ),
             SizedBox(height: 20),
-            Text('メールアドレス', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('メールアドレス',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             TextField(
               controller: _emailController,
               decoration: InputDecoration(hintText: 'メールアドレスを入力'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _username.isEmpty || _emailController.text.isEmpty ? null : _updateProfile,
+              onPressed: _username.isEmpty || _emailController.text.isEmpty
+                  ? null
+                  : _updateProfile,
               child: Text('保存'),
             ),
           ],

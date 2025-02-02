@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animeishi/ui/SNS/view/friend_watch_list_page.dart';
+import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 
 class SNSPage extends StatefulWidget {
   @override
@@ -125,7 +126,19 @@ class _SNSPageState extends State<SNSPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('SNSページ')),
+      appBar: AppBar(
+        title: Text('フレンドリスト/名刺一覧'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 戻るボタンを押したときにHomePageに遷移
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()), // HomePageに遷移
+            );
+          },
+        ),
+      ),
       body: ListView.builder(
         itemCount: _friendIds.length,
         itemBuilder: (context, index) {

@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animeishi/ui/camera/view/scandata.dart';
+import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート
 
 class ScannerWidget extends StatefulWidget {
   const ScannerWidget({super.key});
@@ -26,11 +27,22 @@ class _ScannerWidgetState extends State<ScannerWidget>
 
       String currentUserId = currentUser.uid; // 現在ログインしているユーザーID
 
+      // 自分のリストに相手を保存
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId) // 現在ログインしているユーザーの Firestore ドキュメント
           .collection('meishies')
           .doc(scannedUserId) // 読み取ったユーザーの ID をドキュメント ID に
+          .set({
+        'scanned_at': FieldValue.serverTimestamp(), // スキャンした日時
+      });
+
+      // 相手のリストに自分を保存
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(scannedUserId) // 現在ログインしているユーザーの Firestore ドキュメント
+          .collection('meishies')
+          .doc(currentUserId) // 読み取ったユーザーの ID をドキュメント ID に
           .set({
         'scanned_at': FieldValue.serverTimestamp(), // スキャンした日時
       });
@@ -47,6 +59,16 @@ class _ScannerWidgetState extends State<ScannerWidget>
       appBar: AppBar(
         backgroundColor: const Color(0xFF66FF99),
         title: const Text('スキャンしよう'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 戻るボタンを押したときにHomePageに遷移
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()), // HomePageに遷移
+            );
+          },
+        ),
       ),
       backgroundColor: Colors.black,
       body: MobileScanner(

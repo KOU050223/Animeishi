@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestoreをインポート
 import 'package:animeishi/ui/profile/view/profile_edit_page.dart'; // ProfileEditPage のインポート
 import 'package:animeishi/ui/watch/view/watch_list.dart';
+import 'package:animeishi/ui/auth/view/auth_page.dart'; // AuthPage のインポート
+import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -22,19 +24,19 @@ class _ProfilePageState extends State<ProfilePage> {
       try {
         final userId = user.uid;
         setState(() {
-          _userId = userId;
+          _userId = user.uid;
           _email = user.email ?? '';
+          _username = user.displayName ?? '';
         });
 
         // Firestoreからユーザー情報を取得
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
-            .doc(userId)
+            .doc(user.uid)
             .get();
 
         if (userDoc.exists) {
           setState(() {
-            _username = userDoc['username'] ?? '未設定';
             _selectedGenres =
                 List<String>.from(userDoc['selectedGenres'] ?? []); // ジャンルを取得
           });
@@ -54,7 +56,19 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('名刺')),
+      appBar: AppBar(
+        title: Text('プロフィール/名刺'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 「戻る」ボタンでHomePageに戻る
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()), // HomePageに遷移
+            );
+          },
+        ),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -173,6 +187,21 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     },
                     child: Text('視聴履歴'),
+                  ),
+
+                  // ログイン画面に遷移するボタン
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // ログイン画面に遷移
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AuthPage(), // ログインページへの遷移
+                        ),
+                      );
+                    },
+                    child: Text('ログイン画面に移動'),
                   ),
                 ],
               ),
