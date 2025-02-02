@@ -85,7 +85,24 @@ class AnimeListPage extends StatelessWidget {
                       ElevatedButton.icon(
                         onPressed: viewModel.isLoading
                             ? null
-                            : viewModel.deleteSelectedAnime,
+                            : () async {
+                                try {
+                                  await viewModel.deleteSelectedAnime();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('選択したアニメを削除しました'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('削除に失敗しました: $e'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
                         icon: const Icon(Icons.delete),
                         label: const Text('削除'),
                       ),
@@ -93,7 +110,24 @@ class AnimeListPage extends StatelessWidget {
                       ElevatedButton.icon(
                         onPressed: viewModel.isLoading
                             ? null
-                            : viewModel.saveSelectedAnime,
+                            : () async {
+                                try {
+                                  await viewModel.saveSelectedAnime();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('選択したアニメを登録しました'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('登録に失敗しました: $e'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
                         icon: const Icon(Icons.save),
                         label: const Text('登録'),
                       ),

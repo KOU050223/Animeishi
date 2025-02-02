@@ -125,12 +125,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      Text(
+                      Expanded(
+                        child: Text(
                         _email.isEmpty ? '未設定' : _email,
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 16),
                         softWrap: true, // 自動的に改行される
                         overflow: TextOverflow.ellipsis, // 文字が長すぎる場合、省略符号で表示
                       ),
+                     ),
                     ],
                   ),
                   SizedBox(height: 20),
