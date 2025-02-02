@@ -25,8 +25,10 @@ class _EmailLoginPage extends State<EmailLoginPage> {
 
   Future<void> _login() async {
     try {
-      final User? user = (await FirebaseAuth.instance.signInWithEmailAndPassword(
-              email: emailController.text, password: passwordController.text))
+      final User? user = (await FirebaseAuth.instance
+              .signInWithEmailAndPassword(
+                  email: emailController.text,
+                  password: passwordController.text))
           .user;
 
       if (user != null) {
@@ -53,8 +55,10 @@ class _EmailLoginPage extends State<EmailLoginPage> {
       emailController.text = 'test@test.com';
       passwordController.text = 'password';
 
-      final User? user = (await FirebaseAuth.instance.signInWithEmailAndPassword(
-              email: emailController.text, password: passwordController.text))
+      final User? user = (await FirebaseAuth.instance
+              .signInWithEmailAndPassword(
+                  email: emailController.text,
+                  password: passwordController.text))
           .user;
 
       if (user != null) {
@@ -78,7 +82,8 @@ class _EmailLoginPage extends State<EmailLoginPage> {
 
   Future<void> _resetPassword() async {
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text);
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: emailController.text);
       print("${emailController.text}へパスワードリセット用のメールを送信しました");
     } catch (e) {
       print(e);
@@ -90,7 +95,8 @@ class _EmailLoginPage extends State<EmailLoginPage> {
     return Scaffold(
       body: BackgroundAnimation1(
         size: MediaQuery.of(context).size,
-        child: SingleChildScrollView( // スクロール可能に変更
+        child: SingleChildScrollView(
+          // スクロール可能に変更
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -137,10 +143,10 @@ class _EmailLoginPage extends State<EmailLoginPage> {
                   child: const Text('ログイン'),
                   onPressed: _login,
                 ),
-                ElevatedButton(
-                  child: const Text('テストログイン'),
-                  onPressed: _testLogin,
-                ),
+                // ElevatedButton(
+                //   child: const Text('テストログイン'),
+                //   onPressed: _testLogin,
+                // ),
                 ElevatedButton(
                   onPressed: _resetPassword,
                   child: const Text('パスワードリセット'),
