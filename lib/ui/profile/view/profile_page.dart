@@ -22,19 +22,19 @@ class _ProfilePageState extends State<ProfilePage> {
       try {
         final userId = user.uid;
         setState(() {
-          _userId = userId;
+          _userId = user.uid;
           _email = user.email ?? '';
+          _username = user.displayName ?? '';
         });
 
-        // Firestoreからユーザー情報を取得
+        // // Firestoreからユーザー情報を取得
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
-            .doc(userId)
+            .doc(user.uid)
             .get();
 
         if (userDoc.exists) {
           setState(() {
-            _username = userDoc['username'] ?? '未設定';
             _selectedGenres =
                 List<String>.from(userDoc['selectedGenres'] ?? []); // ジャンルを取得
           });
