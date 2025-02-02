@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'アニメ'),
           BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: 'QRコード'),
-          BottomNavigationBarItem(icon: Icon(Icons.social_distance), label: 'SNS'),
+          BottomNavigationBarItem(icon: Icon(Icons.social_distance), label: 'フレンド'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
         ],
         backgroundColor: Colors.blueGrey,
