@@ -1,13 +1,11 @@
-// 標準
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-// 各画面のインポート（プロジェクト内のパスに合わせて調整してください）
 import 'package:animeishi/ui/auth/view/auth_page.dart';
 import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:animeishi/ui/profile/view/profile_page.dart';
-import 'package:animeishi/ui/camera/view/qr_page.dart'; // ここにScannerWidgetが含まれている前提
+import 'package:animeishi/ui/camera/view/qr_page.dart';
 import 'package:animeishi/ui/SNS/view/SNS_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,41 +18,20 @@ class _HomePageState extends State<HomePage> {
 
   // 各ページのウィジェットリスト
   final List<Widget> _pages = [
-    // ホーム画面はHomePageContentで、qrDataはbuild内で渡します
-    // そのため、ここでは仮のWidgetとしてnullを入れ、
-    // インデックス0のときだけHomePageContentを直接表示する形にしています。
-    Container(),
+    Container(),  // ホーム画面のため仮のContainer
     AnimeListPage(),
-    ScannerWidget(), // QRコードスキャン画面。CameraPageの場合は適宜変更してください。
+    ScannerWidget(), // QRコードスキャン画面
     SNSPage(),
     ProfilePage(),
   ];
 
-  // FirebaseAuthから現在のユーザーを取得
   final User? _user = FirebaseAuth.instance.currentUser;
-
-  // ユーザーUID（ログインしていなければ "No UID"）
   String get qrData => _user?.uid ?? "No UID";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('アニ名刺'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.login),
-            iconSize: 30,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AuthPage()),
-              );
-            },
-          ),
-        ],
-      ),
-      // インデックス0ならHomePageContent（QRコード表示）、それ以外ならリストから取得
+      appBar: null,  // AppBar を削除します
       body: _currentIndex == 0
           ? HomePageContent(qrData: qrData, user: _user)
           : _pages[_currentIndex],
@@ -65,8 +42,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'アニメ'),
           BottomNavigationBarItem(icon: Icon(Icons.qr_code), label: 'QRコード'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.social_distance), label: 'SNS'),
+          BottomNavigationBarItem(icon: Icon(Icons.social_distance), label: 'フレンド'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
         ],
         backgroundColor: Colors.blueGrey,
@@ -83,6 +59,7 @@ class _HomePageState extends State<HomePage> {
 class HomePageContent extends StatelessWidget {
   final String qrData;
   final User? user;
+
   const HomePageContent({Key? key, required this.qrData, required this.user})
       : super(key: key);
 

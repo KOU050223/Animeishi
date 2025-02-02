@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート
 
 class ScanDataWidget extends StatelessWidget {
   final BarcodeCapture? scandata;
@@ -83,6 +84,16 @@ class ScanDataWidget extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF66FF99),
         title: const Text('スキャンの結果'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 戻るボタンを押したときにHomePageに遷移
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()), // HomePageに遷移
+            );
+          },
+        ),
       ),
       body: FutureBuilder<List<dynamic>>(
         future: fetchData(userId),
