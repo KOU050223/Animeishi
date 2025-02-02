@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:collection/collection.dart';
 
-enum SortOrder {tid,year,name}
+enum SortOrder { tid, year, name }
 
 class AnimeListViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _animeList = [];
@@ -17,7 +17,7 @@ class AnimeListViewModel extends ChangeNotifier {
   Set<String> get selectedAnime => _selectedAnime; // 選択されたアニメのTIDを取得するゲッター
   SortOrder get sortOrder => _sortOrder; //ソート順を取得するゲッター
   bool get isAscending => _isAscending; //昇順 or 降順を取得
-  
+
   //ソート順の変更
   void setSortOrder(SortOrder order) {
     _sortOrder = order;
@@ -36,7 +36,8 @@ class AnimeListViewModel extends ChangeNotifier {
       int compare = 0;
       switch (_sortOrder) {
         case SortOrder.tid:
-          compare = int.parse(a['tid'].toString()).compareTo(int.parse(b['tid'].toString()));
+          compare = int.parse(a['tid'].toString())
+              .compareTo(int.parse(b['tid'].toString()));
           break;
 
         case SortOrder.year:
@@ -53,9 +54,9 @@ class AnimeListViewModel extends ChangeNotifier {
           }
           break;
 
-
         case SortOrder.name:
-          compare = a['title'].toString().compareTo(b['title'].toString()); // 文字列昇順
+          compare =
+              a['title'].toString().compareTo(b['title'].toString()); // 文字列昇順
           break;
       }
       return _isAscending ? compare : -compare; //昇順・降順の切り替え
@@ -64,7 +65,7 @@ class AnimeListViewModel extends ChangeNotifier {
   }
 
   Future<void> initOfflineModeAndLoadCache() async {
-    await FirebaseFirestore.instance.disableNetwork();
+    // await FirebaseFirestore.instance.disableNetwork();
     final cacheSnapshot = await FirebaseFirestore.instance
         .collection('titles')
         .get(const GetOptions(source: Source.cache))
@@ -89,7 +90,7 @@ class AnimeListViewModel extends ChangeNotifier {
 
       _animeList = cacheList;
       sortAnimeList(); //ソートの適用
-      notifyListeners(); 
+      notifyListeners();
     }
   }
 
@@ -122,7 +123,7 @@ class AnimeListViewModel extends ChangeNotifier {
       // 選択されたアニメの情報を取得
       await loadSelectedAnime();
 
-      await FirebaseFirestore.instance.disableNetwork();
+      // await FirebaseFirestore.instance.disableNetwork();
     } catch (e) {
       debugPrint('Error fetching from server: $e');
     } finally {
@@ -231,7 +232,7 @@ class AnimeListViewModel extends ChangeNotifier {
       print('セーブ処理中にエラーが発生しました: $e');
     } finally {
       // ■ 書き込みが終わったら再びオフラインへ切り替え
-      await FirebaseFirestore.instance.disableNetwork();
+      // await FirebaseFirestore.instance.disableNetwork();
     }
   }
 
@@ -286,7 +287,7 @@ class AnimeListViewModel extends ChangeNotifier {
       print('削除処理中にエラーが発生しました: $e');
     } finally {
       // ■ 削除が終わったら再びオフラインへ切り替え
-      await FirebaseFirestore.instance.disableNetwork();
+      // await FirebaseFirestore.instance.disableNetwork();
     }
   }
 
