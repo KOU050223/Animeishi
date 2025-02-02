@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 import 'app.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'config/firebase_options.dart';
@@ -9,6 +10,12 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+   // 縦画面固定を設定
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp, // 通常の縦画面
+    DeviceOrientation.portraitDown, // 逆さまの縦画面（必要に応じて省略可能）
+  ]);
   // Firestoreエミュレータに接続
   // FirebaseFirestore.instance.settings = const Settings(
   //   host: 'localhost:8080',
