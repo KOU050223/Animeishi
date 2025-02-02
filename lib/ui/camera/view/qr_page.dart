@@ -54,6 +54,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
         fit: BoxFit.contain,
         onDetect: (scandata) {
           final scannedUserId = scandata.barcodes.first.rawValue;
+          print('スキャン結果: $scannedUserId');
           if (scannedUserId != null && scannedUserId.isNotEmpty) {
             setState(() {
               controller.stop(); // スキャン成功後にカメラを停止

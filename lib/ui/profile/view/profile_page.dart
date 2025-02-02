@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestoreをインポート
-import 'package:animeishi/ui/profile/view/profile_edit_page.dart';  // ProfileEditPage のインポート
-import 'package:animeishi/ui/watch/view/watch_list.dart'; 
+import 'package:animeishi/ui/profile/view/profile_edit_page.dart'; // ProfileEditPage のインポート
+import 'package:animeishi/ui/watch/view/watch_list.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -27,12 +27,16 @@ class _ProfilePageState extends State<ProfilePage> {
         });
 
         // Firestoreからユーザー情報を取得
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-        
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
+
         if (userDoc.exists) {
           setState(() {
             _username = userDoc['username'] ?? '未設定';
-            _selectedGenres = List<String>.from(userDoc['selectedGenres'] ?? []); // ジャンルを取得
+            _selectedGenres =
+                List<String>.from(userDoc['selectedGenres'] ?? []); // ジャンルを取得
           });
         }
       } catch (e) {
@@ -68,7 +72,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Text(
                         'ユーザーネーム: ',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         _username.isEmpty ? '未設定' : _username,
@@ -97,11 +102,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Text(
                         'ユーザーID: ',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      Text(
-                        _userId.isEmpty ? '未設定' : _userId,
-                        style: TextStyle(fontSize: 18),
+                      Expanded(
+                        child: Text(
+                          _userId.isEmpty ? '未設定' : _userId,
+                          style: TextStyle(fontSize: 16),
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -112,7 +122,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Text(
                         'メールアドレス: ',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         _email.isEmpty ? '未設定' : _email,
@@ -133,7 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           builder: (context) => ProfileEditPage(
                             username: _username,
                             selectedGenres: _selectedGenres,
-                            email: _email,  // パスワードは渡さない
+                            email: _email, // パスワードは渡さない
                           ),
                         ),
                       );
@@ -147,7 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                     child: Text('プロフィールを編集'),
                   ),
-                  
+
                   // 視聴履歴ボタン
                   SizedBox(height: 20),
                   ElevatedButton(
@@ -155,7 +166,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       // 「視聴履歴」ボタンを押したら WatchListPage に遷移
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => WatchListPage()),
+                        MaterialPageRoute(
+                            builder: (context) => WatchListPage()),
                       );
                     },
                     child: Text('視聴履歴'),

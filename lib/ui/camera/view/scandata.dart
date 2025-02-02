@@ -13,6 +13,8 @@ class ScanDataWidget extends StatelessWidget {
           .collection('users')
           .doc(userId)
           .get();
+      print('ユーザーデータ取得: $userId');
+      print(doc);
       if (doc.exists) {
         return doc.data();
       } else {
@@ -75,6 +77,7 @@ class ScanDataWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // scandata から userId を取得（なければ 'null' を指定）
     final userId = scandata?.barcodes.first.rawValue ?? 'null';
+    print('QR取得後の' + userId);
 
     return Scaffold(
       appBar: AppBar(
