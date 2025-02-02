@@ -31,10 +31,10 @@ class _HomePageState extends State<HomePage> {
   ];
 
   // FirebaseAuthから現在のユーザーを取得
-  final User? user = FirebaseAuth.instance.currentUser;
+  final User? _user = FirebaseAuth.instance.currentUser;
 
   // ユーザーUID（ログインしていなければ "No UID"）
-  String get qrData => user?.uid ?? "No UID";
+  String get qrData => _user?.uid ?? "No UID";
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
       ),
       // インデックス0ならHomePageContent（QRコード表示）、それ以外ならリストから取得
       body: _currentIndex == 0
-          ? HomePageContent(qrData: qrData)
+          ? HomePageContent(qrData: qrData, user: _user)
           : _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -82,7 +82,9 @@ class _HomePageState extends State<HomePage> {
 
 class HomePageContent extends StatelessWidget {
   final String qrData;
-  const HomePageContent({Key? key, required this.qrData}) : super(key: key);
+  final User? user;
+  const HomePageContent({Key? key, required this.qrData, required this.user})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +93,7 @@ class HomePageContent extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'あなたの名刺QRコード',
+            '${user?.displayName ?? 'あなた'}の名刺QRコード',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 20),
