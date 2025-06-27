@@ -1,6 +1,7 @@
 import 'package:animeishi/ui/auth/view/account_setting_page.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:animeishi/ui/auth/view/auth_page.dart';
+import 'package:animeishi/ui/auth/components/auth_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -580,20 +581,7 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
       body: Stack(
         children: [
           // 背景グラデーション
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFD6BCFA), // ソフトパープル
-                  Color(0xFFBFDBFE), // ソフトブルー
-                  Color(0xFFFBCFE8), // ソフトピンク
-                  Color(0xFFD1FAE5), // ソフトグリーン
-                ],
-              ),
-            ),
-          ),
+          AuthWidgets.buildBackgroundGradient(),
           
           // パーティクルアニメーション
           CustomPaint(
@@ -610,92 +598,29 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                   minHeight: size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 20.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // 戻るボタン
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: () => Navigator.pop(context),
-                            icon: Icon(
-                              Icons.arrow_back_ios,
-                              color: Color(0xFF2D3748),
-                              size: 24,
-                            ),
-                          ),
-                        ],
+                      AuthWidgets.buildBackButton(
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      
-                      SizedBox(height: isSmallScreen ? 20 : 40),
                       
                       // タイトル部分
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: SlideTransition(
                           position: _slideAnimation,
-                          child: Column(
-                            children: [
-                              // アイコン
-                              Container(
-                                width: isSmallScreen ? 80 : 100,
-                                height: isSmallScreen ? 80 : 100,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFFf093fb).withOpacity(0.8),
-                                      Color(0xFFf5576c).withOpacity(0.9),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0xFFf093fb).withOpacity(0.25),
-                                      blurRadius: 20,
-                                      offset: Offset(0, 8),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  Icons.person_add,
-                                  size: isSmallScreen ? 35 : 45,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(height: isSmallScreen ? 24 : 32),
-                              
-                              // タイトル
-                              Text(
-                                '新規登録',
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 32 : 40,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF2D3748),
-                                  letterSpacing: 1.0,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      offset: Offset(0, 2),
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              
-                              // サブタイトル
-                              Text(
-                                'アカウントを作成してアニ名刺を始めましょう',
-                                style: TextStyle(
-                                  fontSize: isSmallScreen ? 14 : 16,
-                                  color: Color(0xFF718096),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                          child: AuthWidgets.buildPageTitle(
+                            title: '新規登録',
+                            subtitle: 'アカウントを作成してアニ名刺を始めましょう',
+                            icon: Icons.person_add_rounded,
+                            iconColors: [
+                              Color(0xFFf093fb).withOpacity(0.8),
+                              Color(0xFFf5576c).withOpacity(0.9),
                             ],
+                            isSmallScreen: isSmallScreen,
                           ),
                         ),
                       ),
