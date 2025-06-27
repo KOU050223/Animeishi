@@ -11,6 +11,7 @@ class AnimeListViewModel extends ChangeNotifier {
   Set<String> _selectedAnime = {}; // 選択されたアニメのTIDを保持するセット
   SortOrder _sortOrder = SortOrder.tid; //デフォルトはtid順
   bool _isAscending = true; //デフォルトは昇順
+  bool _disposed = false; // dispose状態を追跡
 
   List<Map<String, dynamic>> get animeList => _animeList;
   bool get isLoading => _isLoading;
@@ -61,7 +62,14 @@ class AnimeListViewModel extends ChangeNotifier {
       }
       return _isAscending ? compare : -compare; //昇順・降順の切り替え
     });
-    notifyListeners();
+    _safeNotifyListeners();
+  }
+
+  // 安全にnotifyListenersを呼ぶためのヘルパーメソッド
+  void _safeNotifyListeners() {
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
 
   Future<void> initOfflineModeAndLoadCache() async {
@@ -90,13 +98,13 @@ class AnimeListViewModel extends ChangeNotifier {
 
       _animeList = cacheList;
       sortAnimeList(); //ソートの適用
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> fetchFromServer() async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await FirebaseFirestore.instance.enableNetwork();
@@ -128,18 +136,18 @@ class AnimeListViewModel extends ChangeNotifier {
       debugPrint('Error fetching from server: $e');
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> selectAnime(String tid) async {
     _selectedAnime.add(tid);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> deselectAnime(String tid) async {
     _selectedAnime.remove(tid);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> saveSelectedAnime() async {
@@ -281,7 +289,7 @@ class AnimeListViewModel extends ChangeNotifier {
 
       // ローカルで選択されたアニメのセットをクリア
       _selectedAnime.clear();
-      notifyListeners();
+      _safeNotifyListeners();
       print('削除処理完了');
     } catch (e) {
       print('削除処理中にエラーが発生しました: $e');
@@ -303,10 +311,16 @@ class AnimeListViewModel extends ChangeNotifier {
           .get();
 
       _selectedAnime = snapshot.docs.map((doc) => doc.id).toSet();
-      notifyListeners();
+      _safeNotifyListeners();
       print('ロード処理完了');
     } else {
       print('user is null');
     }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

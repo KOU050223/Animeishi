@@ -233,21 +233,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                 Color(0xFF764ba2).withOpacity(0.9),
                               ],
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation, secondaryAnimation) => EmailLoginPage(),
-                                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                      return SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(1.0, 0.0),
-                                          end: Offset.zero,
-                                        ).animate(animation),
-                                        child: child,
-                                      );
-                                    },
-                                  ),
-                                );
+                                _handleLoginButtonPress();
                               },
                             ),
                             
@@ -669,6 +655,47 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  void _handleLoginButtonPress() {
+    // 現在のログイン状態をチェック
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    
+    if (currentUser != null) {
+      // 既にログインしている場合は直接ホーム画面に遷移
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      );
+    } else {
+      // ログインしていない場合は通常のログイン画面に遷移
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => EmailLoginPage(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      );
+    }
   }
 
   Future<void> _performLogout() async {
