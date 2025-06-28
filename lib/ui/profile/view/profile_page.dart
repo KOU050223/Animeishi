@@ -7,6 +7,7 @@ import 'package:animeishi/ui/auth/view/auth_page.dart'; // AuthPage のインポ
 import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 import 'package:animeishi/ui/animes/view/favorites_page.dart';
 
+
 class ProfilePage extends StatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -115,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
           .collection('favorites')
           .get();
 
-      // フレンド数（正しい取得方法）
+      // フレンド数
       final friendsSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
@@ -584,6 +585,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
       ),
     );
   }
+
+
 
   Widget _buildActionButton(String title, String subtitle, List<Color> colors, VoidCallback onTap) {
     return Container(

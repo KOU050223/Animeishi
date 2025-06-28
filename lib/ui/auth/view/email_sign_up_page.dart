@@ -108,33 +108,12 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
           });
       
       print('基本ユーザードキュメントを作成しました');
-
-      // selectedAnimeコレクションに初期ドキュメントを作成
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('selectedAnime')
-          .doc('init')
-          .set({
-            'createdAt': FieldValue.serverTimestamp(),
-            'placeholder': true,
-          });
-
-      print('selectedAnimeコレクションを作成しました');
-
-      // meishiesコレクションに初期ドキュメントを作成
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('meishies')
-          .doc('init')
-          .set({
-            'createdAt': FieldValue.serverTimestamp(),
-            'placeholder': true,
-          });
-
-      print('meishiesコレクションを作成しました');
-      print('ユーザードキュメントとコレクションを作成しました');
+      
+      // Note: サブコレクション（selectedAnime, meishies, favorites）は
+      // 実際にデータが追加されるときに自動的に作成されるため、
+      // 初期化時にプレースホルダードキュメントを作成する必要はありません。
+      
+      print('ユーザードキュメントの作成が完了しました');
     } catch (e) {
       print('ユーザードキュメントの作成中にエラーが発生しました: $e');
       print('エラーの詳細: ${e.runtimeType}');
