@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:math' as math;
 
@@ -8,6 +9,7 @@ import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:animeishi/ui/profile/view/profile_page.dart';
 import 'package:animeishi/ui/camera/view/qr_page.dart';
 import 'package:animeishi/ui/SNS/view/SNS_page.dart';
+import 'package:animeishi/ui/animes/view/favorites_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -21,6 +23,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _pulseAnimation;
+
+  // 統計データ
+  int _watchedCount = 0;
+  int _favoriteCount = 0;
+  int _friendCount = 0;
+  bool _isLoading = true;
 
   // 各ページのウィジェットリスト
   final List<Widget> _pages = [
@@ -58,6 +66,48 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
     _animationController.forward();
     _pulseController.repeat(reverse: true);
+    
+    // 実際のデータを取得
+    _loadUserStats();
+  }
+
+  Future<void> _loadUserStats() async {
+    if (_user == null) return;
+    
+    try {
+      // 視聴済みアニメ数を取得
+      final selectedAnimeSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('selectedAnime')
+          .get();
+      
+      // お気に入りアニメ数を取得
+      final favoritesSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('favorites')
+          .get();
+      
+      // フレンド数を取得
+      final friendsSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('meishies')
+          .get();
+      
+      setState(() {
+        _watchedCount = selectedAnimeSnapshot.docs.length;
+        _favoriteCount = favoritesSnapshot.docs.length;
+        _friendCount = friendsSnapshot.docs.length;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading user stats: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -78,6 +128,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               fadeAnimation: _fadeAnimation,
               slideAnimation: _slideAnimation,
               pulseAnimation: _pulseAnimation,
+              watchedCount: _watchedCount,
+              favoriteCount: _favoriteCount,
+              friendCount: _friendCount,
+              isLoading: _isLoading,
+              onRefresh: _loadUserStats,
             )
           : _pages[_currentIndex],
       bottomNavigationBar: Container(
@@ -130,6 +185,11 @@ class HomePageContent extends StatelessWidget {
   final Animation<double> fadeAnimation;
   final Animation<double> slideAnimation;
   final Animation<double> pulseAnimation;
+  final int watchedCount;
+  final int favoriteCount;
+  final int friendCount;
+  final bool isLoading;
+  final VoidCallback onRefresh;
 
   const HomePageContent({
     Key? key, 
@@ -138,6 +198,11 @@ class HomePageContent extends StatelessWidget {
     required this.fadeAnimation,
     required this.slideAnimation,
     required this.pulseAnimation,
+    required this.watchedCount,
+    required this.favoriteCount,
+    required this.friendCount,
+    required this.isLoading,
+    required this.onRefresh,
   }) : super(key: key);
 
   @override
@@ -155,197 +220,209 @@ class HomePageContent extends StatelessWidget {
           ],
         ),
       ),
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 140,
-            floating: false,
-            pinned: false,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: Container(
-              margin: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          onRefresh();
+        },
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 140,
+              floating: false,
+              pinned: false,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: Container(
+                margin: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(12),
-                  onTap: () {
-                    Navigator.of(context).pushReplacement(
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => AuthPage(),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(-1.0, 0.0),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                  child: Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Color(0xFF667eea),
-                    size: 20,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.of(context).pushReplacement(
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => AuthPage(),
+                          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(-1.0, 0.0),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: child,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Color(0xFF667eea),
+                      size: 20,
+                    ),
                   ),
                 ),
               ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: AnimatedBuilder(
-                animation: fadeAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, slideAnimation.value),
-                    child: Opacity(
-                      opacity: fadeAnimation.value,
-                      child: Container(
-                        padding: EdgeInsets.fromLTRB(20, 60, 20, 20),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 25,
-                              backgroundColor: Colors.white.withOpacity(0.9),
-                              child: Icon(
-                                Icons.person,
-                                size: 30,
-                                color: Color(0xFF667eea),
+              flexibleSpace: FlexibleSpaceBar(
+                background: AnimatedBuilder(
+                  animation: fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, slideAnimation.value),
+                      child: Opacity(
+                        opacity: fadeAnimation.value,
+                        child: Container(
+                          padding: EdgeInsets.fromLTRB(20, 60, 20, 20),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 25,
+                                backgroundColor: Colors.white.withOpacity(0.9),
+                                child: Icon(
+                                  Icons.person,
+                                  size: 30,
+                                  color: Color(0xFF667eea),
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 15),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'おかえりなさい！',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w400,
+                              SizedBox(width: 15),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'おかえりなさい！',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    user?.displayName ?? 'アニメファン',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2D3748),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      user?.displayName ?? 'アニメファン',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2D3748),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.all(20),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // 統計カード
-                AnimatedBuilder(
-                  animation: fadeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, slideAnimation.value * 1.5),
-                      child: Opacity(
-                        opacity: fadeAnimation.value,
-                        child: _buildStatsCards(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 25),
-                
-                // QRコードカード
-                AnimatedBuilder(
-                  animation: fadeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, slideAnimation.value * 2),
-                      child: Opacity(
-                        opacity: fadeAnimation.value,
-                        child: _buildQRCard(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 25),
-                
-                // クイックアクション
-                AnimatedBuilder(
-                  animation: fadeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, slideAnimation.value * 2.5),
-                      child: Opacity(
-                        opacity: fadeAnimation.value,
-                        child: _buildQuickActions(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 25),
-                
-                // 最近の活動
-                AnimatedBuilder(
-                  animation: fadeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, slideAnimation.value * 3),
-                      child: Opacity(
-                        opacity: fadeAnimation.value,
-                        child: _buildRecentActivity(),
-                      ),
-                    );
-                  },
-                ),
-                SizedBox(height: 100), // Bottom navigation bar のためのスペース
-              ]),
+            SliverPadding(
+              padding: EdgeInsets.all(20),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // 統計カード
+                  AnimatedBuilder(
+                    animation: fadeAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, slideAnimation.value * 1.5),
+                        child: Opacity(
+                          opacity: fadeAnimation.value,
+                          child: _buildStatsCards(context),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 25),
+                  
+                  // QRコードカード
+                  AnimatedBuilder(
+                    animation: fadeAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, slideAnimation.value * 2),
+                        child: Opacity(
+                          opacity: fadeAnimation.value,
+                          child: _buildQRCard(),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 25),
+                  
+                  // クイックアクション
+                  AnimatedBuilder(
+                    animation: fadeAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, slideAnimation.value * 2.5),
+                        child: Opacity(
+                          opacity: fadeAnimation.value,
+                          child: _buildQuickActions(context),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 25),
+                  
+                  // 最近の活動
+                  AnimatedBuilder(
+                    animation: fadeAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, slideAnimation.value * 3),
+                        child: Opacity(
+                          opacity: fadeAnimation.value,
+                          child: _buildRecentActivity(),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 100), // Bottom navigation bar のためのスペース
+                ]),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatsCards() {
+  Widget _buildStatsCards(BuildContext context) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             icon: Icons.tv,
             title: '視聴済み',
-            value: '12',
+            value: isLoading ? '...' : watchedCount.toString(),
             subtitle: 'アニメ',
             color: Color(0xFF667eea),
+            isLoading: isLoading,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AnimeListPage()),
+              );
+            },
           ),
         ),
         SizedBox(width: 15),
@@ -353,9 +430,16 @@ class HomePageContent extends StatelessWidget {
           child: _buildStatCard(
             icon: Icons.favorite,
             title: 'お気に入り',
-            value: '8',
+            value: isLoading ? '...' : favoriteCount.toString(),
             subtitle: '作品',
             color: Color(0xFFf093fb),
+            isLoading: isLoading,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FavoritesPage()),
+              );
+            },
           ),
         ),
         SizedBox(width: 15),
@@ -363,9 +447,16 @@ class HomePageContent extends StatelessWidget {
           child: _buildStatCard(
             icon: Icons.people,
             title: 'フレンド',
-            value: '5',
+            value: isLoading ? '...' : friendCount.toString(),
             subtitle: '人',
             color: Color(0xFF4facfe),
+            isLoading: isLoading,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SNSPage()),
+              );
+            },
           ),
         ),
       ],
@@ -378,48 +469,71 @@ class HomePageContent extends StatelessWidget {
     required String value,
     required String subtitle,
     required Color color,
+    required bool isLoading,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 28),
-          SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 10,
+              offset: Offset(0, 5),
             ),
-          ),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            SizedBox(height: 8),
+            isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  )
+                : Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D3748),
+                    ),
+                  ),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[500],
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey[500],
+              ),
             ),
-          ),
-        ],
+            if (onTap != null)
+              Container(
+                margin: EdgeInsets.only(top: 4),
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 12,
+                  color: color.withOpacity(0.7),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -499,7 +613,7 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -515,20 +629,36 @@ class HomePageContent extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _buildActionCard(
-                icon: Icons.search,
-                title: 'アニメを探す',
-                subtitle: '新しい作品を発見',
-                color: Color(0xFF38b2ac),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AnimeListPage()),
+                  );
+                },
+                child: _buildActionCard(
+                  icon: Icons.search,
+                  title: 'アニメを探す',
+                  subtitle: '新しい作品を発見',
+                  color: Color(0xFF38b2ac),
+                ),
               ),
             ),
             SizedBox(width: 15),
             Expanded(
-              child: _buildActionCard(
-                icon: Icons.qr_code_scanner,
-                title: 'QRスキャン',
-                subtitle: 'フレンドを追加',
-                color: Color(0xFFed8936),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ScannerWidget()),
+                  );
+                },
+                child: _buildActionCard(
+                  icon: Icons.qr_code_scanner,
+                  title: 'QRスキャン',
+                  subtitle: 'フレンドを追加',
+                  color: Color(0xFFed8936),
+                ),
               ),
             ),
           ],
@@ -615,30 +745,36 @@ class HomePageContent extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            children: [
-              _buildActivityItem(
-                icon: Icons.tv,
-                title: '鬼滅の刃',
-                subtitle: '視聴完了 • 2時間前',
-                color: Color(0xFF667eea),
-              ),
-              Divider(height: 20, color: Colors.grey[200]),
-              _buildActivityItem(
-                icon: Icons.favorite,
-                title: '呪術廻戦',
-                subtitle: 'お気に入りに追加 • 1日前',
-                color: Color(0xFFf093fb),
-              ),
-              Divider(height: 20, color: Colors.grey[200]),
-              _buildActivityItem(
-                icon: Icons.person_add,
-                title: '新しいフレンド',
-                subtitle: 'Aliceさんを追加 • 3日前',
-                color: Color(0xFF4facfe),
-              ),
-            ],
-          ),
+          child: isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+                  ),
+                )
+              : Column(
+                  children: [
+                    _buildActivityItem(
+                      icon: Icons.tv,
+                      title: '視聴履歴',
+                      subtitle: '${watchedCount}件のアニメを視聴中',
+                      color: Color(0xFF667eea),
+                    ),
+                    Divider(height: 20, color: Colors.grey[200]),
+                    _buildActivityItem(
+                      icon: Icons.favorite,
+                      title: 'お気に入り',
+                      subtitle: '${favoriteCount}件の作品をお気に入り登録',
+                      color: Color(0xFFf093fb),
+                    ),
+                    Divider(height: 20, color: Colors.grey[200]),
+                    _buildActivityItem(
+                      icon: Icons.people,
+                      title: 'フレンド',
+                      subtitle: '${friendCount}人とつながっています',
+                      color: Color(0xFF4facfe),
+                    ),
+                  ],
+                ),
         ),
       ],
     );

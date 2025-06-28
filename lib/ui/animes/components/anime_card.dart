@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AnimeCard extends StatelessWidget {
+class AnimeCard extends StatefulWidget {
   final Map<String, dynamic> anime;
   final bool isSelected;
   final bool isRegistered;
   final VoidCallback onTap;
+  final VoidCallback? onSelectToggle;
 
   const AnimeCard({
     Key? key,
@@ -12,16 +15,138 @@ class AnimeCard extends StatelessWidget {
     required this.isSelected,
     required this.isRegistered,
     required this.onTap,
+    this.onSelectToggle,
   }) : super(key: key);
 
   @override
+  _AnimeCardState createState() => _AnimeCardState();
+}
+
+class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
+  bool _isFavorite = false;
+  bool _isLoading = false;
+  late AnimationController _favoriteController;
+  late Animation<double> _favoriteAnimation;
+  final User? _user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _favoriteController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    
+    _favoriteAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(
+      parent: _favoriteController,
+      curve: Curves.elasticOut,
+    ));
+    
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    if (_user == null) return;
+    
+    try {
+      final tid = widget.anime['tid']?.toString();
+      if (tid == null) return;
+      
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('favorites')
+          .doc(tid)
+          .get();
+      
+      if (mounted) {
+        setState(() {
+          _isFavorite = doc.exists;
+        });
+      }
+    } catch (e) {
+      print('Error checking favorite status: $e');
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_user == null || _isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final tid = widget.anime['tid']?.toString();
+      if (tid == null) return;
+      
+      final favoriteRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('favorites')
+          .doc(tid);
+      
+      if (_isFavorite) {
+        // お気に入りから削除
+        await favoriteRef.delete();
+        if (mounted) {
+          setState(() {
+            _isFavorite = false;
+          });
+        }
+      } else {
+        // お気に入りに追加
+        await favoriteRef.set({
+          'title': widget.anime['title'],
+          'titleyomi': widget.anime['titleyomi'],
+          'tid': widget.anime['tid'],
+          'firstyear': widget.anime['firstyear'],
+          'firstmonth': widget.anime['firstmonth'],
+          'comment': widget.anime['comment'],
+          'addedAt': FieldValue.serverTimestamp(),
+        });
+        
+        if (mounted) {
+          setState(() {
+            _isFavorite = true;
+          });
+        }
+      }
+      
+      // アニメーション実行
+      _favoriteController.forward().then((_) {
+        _favoriteController.reverse();
+      });
+      
+    } catch (e) {
+      print('Error toggling favorite: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _favoriteController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final tid = anime['tid'] ?? 'N/A';
-    final title = anime['title'] ?? 'タイトル不明';
-    final yomi = anime['titleyomi'] ?? '';
-    final firstMonth = anime['firstmonth'] ?? '';
-    final firstYear = anime['firstyear'] ?? '';
-    final comment = anime['comment'] ?? '';
+    final tid = widget.anime['tid'] ?? 'N/A';
+    final title = widget.anime['title'] ?? 'タイトル不明';
+    final yomi = widget.anime['titleyomi'] ?? '';
+    final firstMonth = widget.anime['firstmonth'] ?? '';
+    final firstYear = widget.anime['firstyear'] ?? '';
+    final comment = widget.anime['comment'] ?? '';
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -29,7 +154,7 @@ class AnimeCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isSelected
+          colors: widget.isSelected
               ? [
                   Color(0xFF667eea).withOpacity(0.15),
                   Color(0xFF764ba2).withOpacity(0.1),
@@ -41,18 +166,18 @@ class AnimeCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isSelected
+          color: widget.isSelected
               ? Color(0xFF667eea).withOpacity(0.5)
               : Colors.white.withOpacity(0.3),
-          width: isSelected ? 2 : 1,
+          width: widget.isSelected ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isSelected
+            color: widget.isSelected
                 ? Color(0xFF667eea).withOpacity(0.2)
                 : Colors.black.withOpacity(0.08),
-            blurRadius: isSelected ? 20 : 15,
-            offset: Offset(0, isSelected ? 8 : 5),
+            blurRadius: widget.isSelected ? 20 : 15,
+            offset: Offset(0, widget.isSelected ? 8 : 5),
           ),
         ],
       ),
@@ -60,7 +185,7 @@ class AnimeCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
+          onTap: widget.onTap,
           child: Padding(
             padding: EdgeInsets.all(20),
             child: Row(
@@ -75,7 +200,7 @@ class AnimeCard extends StatelessWidget {
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: isRegistered
+                          colors: widget.isRegistered
                               ? [
                                   Color(0xFF48BB78).withOpacity(0.9),
                                   Color(0xFF38A169).withOpacity(0.9),
@@ -88,7 +213,7 @@ class AnimeCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: isRegistered
+                            color: widget.isRegistered
                                 ? Color(0xFF48BB78).withOpacity(0.3)
                                 : Color(0xFF667eea).withOpacity(0.3),
                             blurRadius: 12,
@@ -97,14 +222,14 @@ class AnimeCard extends StatelessWidget {
                         ],
                       ),
                       child: Icon(
-                        isRegistered ? Icons.bookmark_added : Icons.movie_outlined,
+                        widget.isRegistered ? Icons.bookmark_added : Icons.movie_outlined,
                         color: Colors.white,
                         size: 28,
                       ),
                     ),
                     
                     // 登録済みバッジ
-                    if (isRegistered)
+                    if (widget.isRegistered)
                       Positioned(
                         top: -2,
                         right: -2,
@@ -138,6 +263,47 @@ class AnimeCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                    
+                    // お気に入りバッジ
+                    if (_isFavorite)
+                      Positioned(
+                        bottom: -2,
+                        right: -2,
+                        child: AnimatedBuilder(
+                          animation: _favoriteAnimation,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _favoriteAnimation.value,
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [Colors.pink[400]!, Colors.pink[600]!],
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.pink.withOpacity(0.4),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.favorite,
+                                  color: Colors.white,
+                                  size: 12,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                   ],
                 ),
                 
@@ -169,7 +335,7 @@ class AnimeCard extends StatelessWidget {
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: isRegistered
+                              color: widget.isRegistered
                                   ? Color(0xFF48BB78).withOpacity(0.1)
                                   : Color(0xFF667eea).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
@@ -179,14 +345,14 @@ class AnimeCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isRegistered
+                                color: widget.isRegistered
                                     ? Color(0xFF48BB78)
                                     : Color(0xFF667eea),
                               ),
                             ),
                           ),
                           
-                          if (isRegistered) ...[
+                          if (widget.isRegistered) ...[
                             SizedBox(width: 8),
                             Container(
                               padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -272,31 +438,85 @@ class AnimeCard extends StatelessWidget {
                 
                 SizedBox(width: 12),
                 
-                // 選択状態インジケーター
-                AnimatedContainer(
-                  duration: Duration(milliseconds: 200),
-                  width: 24,
-                  height: 24,
+                // お気に入りボタン
+                Container(
+                  margin: EdgeInsets.only(right: 8),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? Color(0xFF667eea)
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected
-                          ? Color(0xFF667eea)
-                          : Color(0xFF718096).withOpacity(0.3),
-                      width: 2,
-                    ),
+                    color: Colors.white.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: isSelected
-                      ? Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 16,
-                        )
-                      : null,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: _isLoading ? null : _toggleFavorite,
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        child: _isLoading
+                            ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.pink[400]!,
+                                  ),
+                                ),
+                              )
+                            : AnimatedBuilder(
+                                animation: _favoriteAnimation,
+                                builder: (context, child) {
+                                  return Transform.scale(
+                                    scale: _favoriteAnimation.value,
+                                    child: Icon(
+                                      _isFavorite ? Icons.favorite : Icons.favorite_border,
+                                      color: _isFavorite ? Colors.pink[400] : Colors.grey[600],
+                                      size: 16,
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ),
+                  ),
                 ),
+                
+                // 選択状態インジケーター（登録済みでない場合のみ表示）
+                if (!widget.isRegistered && widget.onSelectToggle != null)
+                  GestureDetector(
+                    onTap: widget.onSelectToggle,
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 200),
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: widget.isSelected
+                            ? Color(0xFF667eea)
+                            : Colors.transparent,
+                        border: Border.all(
+                          color: widget.isSelected
+                              ? Color(0xFF667eea)
+                              : Color(0xFF718096).withOpacity(0.3),
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: widget.isSelected
+                          ? Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
+                    ),
+                  ),
               ],
             ),
           ),

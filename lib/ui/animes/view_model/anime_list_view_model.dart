@@ -7,19 +7,24 @@ enum SortOrder { tid, year, name }
 
 class AnimeListViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _animeList = [];
+  List<Map<String, dynamic>> _filteredAnimeList = [];
   bool _isLoading = false;
   Set<String> _selectedAnime = {}; // 一時的に選択されたアニメのTIDを保持するセット
   Set<String> _registeredAnime = {}; // 登録済みアニメのTIDを保持するセット
   SortOrder _sortOrder = SortOrder.tid; //デフォルトはtid順
   bool _isAscending = true; //デフォルトは昇順
   bool _disposed = false; // dispose状態を追跡
+  String _searchQuery = ''; // 検索クエリ
 
-  List<Map<String, dynamic>> get animeList => _animeList;
+  List<Map<String, dynamic>> get animeList => _filteredAnimeList.isNotEmpty || _searchQuery.isNotEmpty 
+      ? _filteredAnimeList 
+      : _animeList;
   bool get isLoading => _isLoading;
   Set<String> get selectedAnime => _selectedAnime; // 一時的に選択されたアニメのTIDを取得するゲッター
   Set<String> get registeredAnime => _registeredAnime; // 登録済みアニメのTIDを取得するゲッター
   SortOrder get sortOrder => _sortOrder; //ソート順を取得するゲッター
   bool get isAscending => _isAscending; //昇順 or 降順を取得
+  String get searchQuery => _searchQuery; // 検索クエリを取得するゲッター
 
   //ソート順の変更
   void setSortOrder(SortOrder order) {
@@ -31,6 +36,61 @@ class AnimeListViewModel extends ChangeNotifier {
   void toggleSortOrder() {
     _isAscending = !_isAscending;
     sortAnimeList();
+  }
+
+  // 検索機能
+  void searchAnime(String query) {
+    _searchQuery = query.toLowerCase();
+    if (_searchQuery.isEmpty) {
+      _filteredAnimeList = [];
+    } else {
+      _filteredAnimeList = _animeList.where((anime) {
+        final title = anime['title'].toString().toLowerCase();
+        final titleYomi = anime['titleyomi'].toString().toLowerCase();
+        final tid = anime['tid'].toString();
+        final year = anime['firstyear'].toString();
+        
+        return title.contains(_searchQuery) ||
+               titleYomi.contains(_searchQuery) ||
+               tid.contains(_searchQuery) ||
+               year.contains(_searchQuery);
+      }).toList();
+      
+      // 検索結果もソートする
+      _sortFilteredList();
+    }
+    _safeNotifyListeners();
+  }
+
+  // フィルタされたリストのソート
+  void _sortFilteredList() {
+    _filteredAnimeList.sort((a, b) {
+      int compare = 0;
+      switch (_sortOrder) {
+        case SortOrder.tid:
+          compare = int.parse(a['tid'].toString())
+              .compareTo(int.parse(b['tid'].toString()));
+          break;
+
+        case SortOrder.year:
+          int aYear = int.tryParse(a['firstyear'].toString()) ?? 0;
+          int bYear = int.tryParse(b['firstyear'].toString()) ?? 0;
+          int aMonth = int.tryParse(a['firstmonth'].toString()) ?? 0;
+          int bMonth = int.tryParse(b['firstmonth'].toString()) ?? 0;
+
+          if (aYear != bYear) {
+            compare = aYear.compareTo(bYear);
+          } else {
+            compare = aMonth.compareTo(bMonth);
+          }
+          break;
+
+        case SortOrder.name:
+          compare = a['title'].toString().compareTo(b['title'].toString());
+          break;
+      }
+      return _isAscending ? compare : -compare;
+    });
   }
 
   //ソート処理(昇順・降順対応)
@@ -64,6 +124,12 @@ class AnimeListViewModel extends ChangeNotifier {
       }
       return _isAscending ? compare : -compare; //昇順・降順の切り替え
     });
+    
+    // 検索中の場合は、フィルタされたリストもソートする
+    if (_searchQuery.isNotEmpty) {
+      _sortFilteredList();
+    }
+    
     _safeNotifyListeners();
   }
 

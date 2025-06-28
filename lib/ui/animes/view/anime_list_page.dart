@@ -7,6 +7,7 @@ import '../components/anime_notification.dart';
 import 'package:animeishi/model/factory/anime_list_factory.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:animeishi/ui/auth/components/auth_widgets.dart';
+import 'package:animeishi/ui/watch/view/watch_anime.dart';
 
 class AnimeListPage extends StatelessWidget {
   @override
@@ -135,7 +136,6 @@ class AnimeListPage extends StatelessWidget {
                     child: AnimeListHeader(
                       viewModel: viewModel,
                       onFetchFromServer: () => _handleFetchFromServer(context, viewModel),
-                      onDeleteSelected: () => _handleDeleteSelected(context, viewModel),
                       onSaveSelected: () => _handleSaveSelected(context, viewModel),
                     ),
                   ),
@@ -155,21 +155,57 @@ class AnimeListPage extends StatelessWidget {
                                 final isSelected = viewModel.selectedAnime.contains(tid);
                                 final isRegistered = viewModel.registeredAnime.contains(tid);
 
-                                return AnimeCard(
-                                  anime: anime,
-                                  isSelected: isSelected,
-                                  isRegistered: isRegistered,
-                                  onTap: () {
-                                    if (isRegistered) {
-                                      // 登録済みアニメの場合は削除確認
-                                      _showUnregisterDialog(context, viewModel, tid, anime['title'] ?? 'タイトル不明');
-                                    } else if (isSelected) {
-                                      viewModel.deselectAnime(tid);
-                                    } else {
-                                      viewModel.selectAnime(tid);
-                                    }
-                                  },
-                                );
+                                // 登録済みアニメの場合はスワイプで削除可能にする
+                                if (isRegistered) {
+                                  return Dismissible(
+                                    key: Key('anime_$tid'),
+                                    direction: DismissDirection.endToStart,
+                                    background: Container(
+                                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.red[400]!,
+                                            Colors.red[600]!,
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      alignment: Alignment.centerRight,
+                                      padding: EdgeInsets.only(right: 30),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.white,
+                                            size: 32,
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            '削除',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    confirmDismiss: (direction) async {
+                                      return await _showUnregisterDialog(
+                                        context, 
+                                        viewModel, 
+                                        tid, 
+                                        anime['title'] ?? 'タイトル不明'
+                                      );
+                                    },
+                                    child: _buildAnimeCard(context, anime, isSelected, isRegistered, viewModel),
+                                  );
+                                } else {
+                                  return _buildAnimeCard(context, anime, isSelected, isRegistered, viewModel);
+                                }
                               },
                               childCount: viewModel.animeList.length,
                             ),
@@ -181,6 +217,33 @@ class AnimeListPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAnimeCard(BuildContext context, Map<String, dynamic> anime, bool isSelected, bool isRegistered, AnimeListViewModel viewModel) {
+    final tid = anime['tid'] ?? 'N/A';
+    
+    return AnimeCard(
+      anime: anime,
+      isSelected: isSelected,
+      isRegistered: isRegistered,
+      onTap: () {
+        // アニメ詳細画面に遷移
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WatchAnimePage(anime: anime),
+          ),
+        );
+      },
+      onSelectToggle: !isRegistered ? () {
+        // 選択状態の切り替え（登録済みでない場合のみ）
+        if (isSelected) {
+          viewModel.deselectAnime(tid);
+        } else {
+          viewModel.selectAnime(tid);
+        }
+      } : null,
     );
   }
 
@@ -268,24 +331,6 @@ class AnimeListPage extends StatelessWidget {
     }
   }
 
-  Future<void> _handleDeleteSelected(BuildContext context, AnimeListViewModel viewModel) async {
-    try {
-      final selectedCount = viewModel.selectedAnime.length;
-      await viewModel.deleteSelectedAnime();
-      AnimeNotification.showInfo(
-        context, 
-        'アニメ削除完了',
-        subtitle: '$selectedCount件のアニメを削除しました',
-      );
-    } catch (e) {
-      AnimeNotification.showError(
-        context, 
-        '削除エラー',
-        subtitle: 'アニメの削除に失敗しました',
-      );
-    }
-  }
-
   Future<void> _handleSaveSelected(BuildContext context, AnimeListViewModel viewModel) async {
     try {
       final selectedCount = viewModel.selectedAnime.length;
@@ -301,11 +346,11 @@ class AnimeListPage extends StatelessWidget {
         '登録エラー',
         subtitle: 'アニメの登録に失敗しました',
       );
-        }
+    }
   }
 
-  void _showUnregisterDialog(BuildContext context, AnimeListViewModel viewModel, String tid, String title) {
-    showDialog(
+  Future<bool?> _showUnregisterDialog(BuildContext context, AnimeListViewModel viewModel, String tid, String title) async {
+    return await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
@@ -339,14 +384,14 @@ class AnimeListPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Color(0xFFf093fb).withOpacity(0.8),
-                        Color(0xFFf5576c).withOpacity(0.9),
+                        Colors.red[400]!,
+                        Colors.red[600]!,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Icon(
-                    Icons.bookmark_remove,
+                    Icons.warning_outlined,
                     color: Colors.white,
                     size: 30,
                   ),
@@ -366,11 +411,11 @@ class AnimeListPage extends StatelessWidget {
                 SizedBox(height: 12),
                 
                 Text(
-                  '「$title」を登録から解除しますか？',
+                  '「$title」を\n登録済みリストから削除しますか？',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 16,
                     color: Color(0xFF718096),
-                    height: 1.5,
+                    height: 1.4,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -380,71 +425,64 @@ class AnimeListPage extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        height: 45,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[300],
+                          foregroundColor: Colors.grey[700],
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            onTap: () => Navigator.of(context).pop(),
-                            child: Center(
-                              child: Text(
-                                'キャンセル',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF718096),
-                                ),
-                              ),
-                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'キャンセル',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                    
                     SizedBox(width: 12),
-                    
                     Expanded(
-                      child: Container(
-                        height: 45,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFFf093fb).withOpacity(0.8),
-                              Color(0xFFf5576c).withOpacity(0.9),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xFFf093fb).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            // 選択状態にして削除処理を実行
+                            viewModel.selectAnime(tid);
+                            await viewModel.deleteSelectedAnime();
+                            Navigator.of(context).pop(true);
+                            AnimeNotification.showSuccess(
+                              context,
+                              '削除完了',
+                              subtitle: '「$title」を登録済みリストから削除しました',
+                            );
+                          } catch (e) {
+                            Navigator.of(context).pop(false);
+                            AnimeNotification.showError(
+                              context,
+                              '削除エラー',
+                              subtitle: 'アニメの削除に失敗しました',
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[400],
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            onTap: () async {
-                              Navigator.of(context).pop();
-                              await _handleUnregisterSingle(context, viewModel, tid, title);
-                            },
-                            child: Center(
-                              child: Text(
-                                '解除',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                          ),
+                          elevation: 5,
+                          shadowColor: Colors.red.withOpacity(0.3),
+                        ),
+                        child: Text(
+                          '削除',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -458,26 +496,4 @@ class AnimeListPage extends StatelessWidget {
       },
     );
   }
-
-  Future<void> _handleUnregisterSingle(BuildContext context, AnimeListViewModel viewModel, String tid, String title) async {
-    try {
-      // 一時的に選択状態にして削除処理を実行
-      viewModel.selectAnime(tid);
-      await viewModel.deleteSelectedAnime();
-      
-      AnimeNotification.showInfo(
-        context, 
-        'アニメ登録解除完了',
-        subtitle: '「$title」を登録から解除しました',
-      );
-    } catch (e) {
-      AnimeNotification.showError(
-        context, 
-        '解除エラー',
-        subtitle: 'アニメの登録解除に失敗しました',
-      );
-    }
-  }
-
- 
 }
