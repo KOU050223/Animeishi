@@ -1,175 +1,197 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート
+import 'package:animeishi/ui/home/view/home_page.dart';
+import '../controllers/scan_result_animation_controller.dart';
+import '../services/scan_data_service.dart';
+import '../components/scan_result_widgets.dart';
+import '../components/scan_result_painters.dart';
 
-class ScanDataWidget extends StatelessWidget {
+class ScanDataWidget extends StatefulWidget {
   final BarcodeCapture? scandata;
   const ScanDataWidget({Key? key, this.scandata}) : super(key: key);
 
-  /// ユーザーデータを取得する
-  Future<Map<String, dynamic>?> getUserData(String userId) async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-      print('ユーザーデータ取得: $userId');
-      print(doc);
-      if (doc.exists) {
-        return doc.data();
-      } else {
-        print('ユーザーが存在しません: $userId');
-      }
-    } catch (e) {
-      print('ユーザーデータ取得エラー: $e');
-    }
-    return null;
+  @override
+  State<ScanDataWidget> createState() => _ScanDataWidgetState();
+}
+
+class _ScanDataWidgetState extends State<ScanDataWidget>
+    with TickerProviderStateMixin {
+  
+  late ScanResultAnimationController _animationController;
+  ScanDataResult? _scanResult;
+  bool _isLoading = true;
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeAndFetch();
   }
 
-  /// ユーザーが選択したアニメの TID を取得する
-  Future<Set<String>> getSelectedAnimeTIDs(String userId) async {
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('selectedAnime')
-          .get();
+  /// 初期化とデータ取得
+  void _initializeAndFetch() async {
+    // アニメーション初期化
+    _animationController = ScanResultAnimationController();
+    _animationController.initialize(this);
+    _animationController.startAnimations();
 
-      // 各ドキュメントのIDが TID として登録されていると仮定
-      return snapshot.docs.map((doc) => doc.id).toSet();
+    // QRコードからユーザーID抽出
+    _userId = ScanDataService.extractUserIdFromQR(
+      widget.scandata?.barcodes.first.rawValue,
+    );
+
+    print('QR取得後の$_userId');
+
+    if (_userId == null) {
+      setState(() {
+        _scanResult = ScanDataResult(
+          success: false,
+          errorType: ScanDataErrorType.invalidQR,
+        );
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // データ取得
+    try {
+      final result = await ScanDataService.fetchUserData(_userId!);
+      setState(() {
+        _scanResult = result;
+        _isLoading = false;
+      });
     } catch (e) {
-      print('selectedAnime 取得エラー: $e');
-      return {};
+      setState(() {
+        _scanResult = ScanDataResult(
+          success: false,
+          errorType: ScanDataErrorType.networkError,
+          errorMessage: e.toString(),
+        );
+        _isLoading = false;
+      });
     }
   }
 
-  /// 取得した TID に基づいて、アニメ詳細情報（ここではアニメ名）を取得する
-  Future<List<Map<String, dynamic>>> getAnimeDetails(Set<String> tids) async {
-    List<Map<String, dynamic>> animeList = [];
-    try {
-      // "titles" コレクションから全件取得（件数が多い場合は where クエリなどで絞ることを検討）
-      final snapshot =
-          await FirebaseFirestore.instance.collection('titles').get();
-      for (var doc in snapshot.docs) {
-        if (tids.contains(doc.id)) {
-          // 'Title' フィールドにアニメの名前が入っていると仮定
-          animeList.add({
-            'tid': doc.id,
-            'title': doc.data()['Title'] ?? 'タイトル未設定',
-          });
-        }
-      }
-    } catch (e) {
-      print('アニメ詳細取得エラー: $e');
-    }
-    return animeList;
-  }
-
-  /// ユーザーデータとアニメ詳細情報の両方を取得する
-  Future<List<dynamic>> fetchData(String userId) async {
-    final userData = await getUserData(userId);
-    final tids = await getSelectedAnimeTIDs(userId);
-    final animeDetails = await getAnimeDetails(tids);
-    return [userData, animeDetails];
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // scandata から userId を取得（なければ 'null' を指定）
-    final userId = scandata?.barcodes.first.rawValue ?? 'null';
-    print('QR取得後の' + userId);
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF66FF99),
-        title: const Text('スキャンの結果'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            // 戻るボタンを押したときにHomePageに遷移
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomePage()), // HomePageに遷移
-            );
-          },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE8D5FF),
+              Color(0xFFB8E6FF),
+              Color(0xFFFFD6E8),
+              Color(0xFFE8FFD6),
+            ],
+          ),
         ),
-      ),
-      body: FutureBuilder<List<dynamic>>(
-        future: fetchData(userId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text('エラーが発生しました'));
-          } else if (snapshot.hasData) {
-            // snapshot.data[0] はユーザーデータ、[1] はアニメの詳細リスト
-            final Map<String, dynamic>? userData =
-                snapshot.data![0] as Map<String, dynamic>?;
-            final List<Map<String, dynamic>> animeList =
-                snapshot.data![1] as List<Map<String, dynamic>>;
-
-            if (userData == null) {
-              return const Center(child: Text('ユーザーデータが見つかりません'));
-            }
-
-            List<String> selectedGenres =
-                List<String>.from(userData['selectedGenres'] ?? []);
-
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ユーザー情報の表示
-                  Text(
-                    'ユーザーネーム: ${userData['username'] ?? '未設定'}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  // 選択されたジャンル
-                  const Text(
-                    '選択されたジャンル:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    selectedGenres.isEmpty ? 'なし' : selectedGenres.join(', '),
-                    style: const TextStyle(fontSize: 18),
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    '視聴履歴:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  // アニメ詳細のリスト表示
-                  Expanded(
-                    child: animeList.isEmpty
-                        ? const Text('視聴履歴はありません')
-                        : ListView.builder(
-                            itemCount: animeList.length,
-                            itemBuilder: (context, index) {
-                              final anime = animeList[index];
-                              return ListTile(
-                                title: Text(anime['title']),
-                              );
-                            },
-                          ),
-                  ),
-                ],
+        child: Stack(
+          children: [
+            // パーティクルアニメーション背景
+            ScanResultParticleBackground(
+              animationController: _animationController.particleController,
+            ),
+            
+            // メインコンテンツ
+            SafeArea(
+              child: AnimatedScanResultContainer(
+                animationController: _animationController,
+                child: _buildContent(),
               ),
-            );
-          } else {
-            return const Center(child: Text('データが見つかりません'));
-          }
-        },
+            ),
+            
+            // 戻るボタン
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => HomePage()),
+                      (route) => false,
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Color(0xFF667EEA),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-}
+
+  /// コンテンツ構築
+  Widget _buildContent() {
+    if (_isLoading) {
+      return ScanResultWidgets.buildLoadingState();
+    }
+
+    if (_scanResult == null || !_scanResult!.success) {
+      return SlideAnimatedContainer(
+        animationController: _animationController,
+        child: ScanResultWidgets.buildErrorState(
+          _scanResult?.errorType ?? ScanDataErrorType.networkError,
+          message: _scanResult?.errorMessage,
+        ),
+      );
+    }
+
+    return _buildSuccessContent();
+  }
+
+  /// 成功時のコンテンツ構築
+  Widget _buildSuccessContent() {
+    final userData = _scanResult!.userData!;
+    final animeList = _scanResult!.animeList!;
+    final userProfile = ScanDataService.parseUserProfile(userData);
+
+    return SlideAnimatedContainer(
+      animationController: _animationController,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            // お祝いアニメーション
+            CelebrationAnimatedWidget(
+              animationController: _animationController,
+              child: ScanResultWidgets.buildSuccessHeader(),
+            ),
+            
+            // ユーザー情報カード
+            ScanResultWidgets.buildUserInfoCard(userProfile),
+            
+            const SizedBox(height: 20),
+            
+            // アニメリストカード
+            ScanResultWidgets.buildAnimeListCard(animeList),
+          ],
+        ),
+      ),
+    );
+  }
+} 
