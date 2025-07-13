@@ -5,6 +5,8 @@ import 'package:animeishi/model/factory/anime_list_factory.dart';
 import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート
 
 class AnimeListPage extends StatelessWidget {
+  const AnimeListPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(

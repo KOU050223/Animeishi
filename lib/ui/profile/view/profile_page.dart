@@ -7,8 +7,10 @@ import 'package:animeishi/ui/auth/view/auth_page.dart'; // AuthPage のインポ
 import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 
 class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {

@@ -5,8 +5,10 @@ import 'package:animeishi/ui/SNS/view/friend_watch_list_page.dart';
 import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 
 class SNSPage extends StatefulWidget {
+  const SNSPage({super.key});
+
   @override
-  _SNSPageState createState() => _SNSPageState();
+  State<SNSPage> createState() => _SNSPageState();
 }
 
 class _SNSPageState extends State<SNSPage> {
