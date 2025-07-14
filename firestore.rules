@@ -2,19 +2,41 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 認証されたユーザーが自分のデータにアクセスできるルール
+    // ユーザー認証が必要な基本ルール
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // ユーザー個人データ - 本人のみアクセス可能
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
       
-      // ユーザーのサブコレクションへのアクセス
-      match /{subcollection=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      // ユーザーのサブコレクション（selectedAnime, meishies, friends等）
+      match /{subcollection}/{document} {
+        allow read, write: if isOwner(userId);
       }
     }
     
-    // 開発・テスト用の一時的なルール（本番環境では削除してください）
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 12, 31);
+    // アニメタイトルデータ - 認証済みユーザーは読み取りのみ
+    match /titles/{document} {
+      allow read: if isAuthenticated();
+      allow write: if false; // 管理者のみ（コンソールから）
+    }
+    
+    // フレンド関係 - 関係者のみアクセス可能
+    match /friends/{document} {
+      allow read, write: if isAuthenticated() && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.uid == resource.data.friendId);
+    }
+    
+    // その他のコレクションは認証必須
+    match /{collection}/{document} {
+      allow read, write: if isAuthenticated();
     }
   }
 }

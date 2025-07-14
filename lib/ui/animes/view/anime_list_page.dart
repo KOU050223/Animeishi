@@ -10,6 +10,8 @@ import 'package:animeishi/ui/auth/components/auth_widgets.dart';
 import 'package:animeishi/ui/watch/view/watch_anime.dart';
 
 class AnimeListPage extends StatelessWidget {
+  const AnimeListPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(

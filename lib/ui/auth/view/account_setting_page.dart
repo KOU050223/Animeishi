@@ -85,13 +85,6 @@ class _AccountSettingState extends State<AccountSettingPage>
       try {
         await user.updateProfile(displayName: userName);
         await user.reload();
-        // Firestoreにユーザードキュメントを作成
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'email': user.email,
-          'createdAt': FieldValue.serverTimestamp(),
-          'username': userName,
-          'selectedGenres': [],
-        });
         print('ユーザー名が更新されました: ${userName}');
         
         // 成功アニメーション後にホーム画面へ遷移

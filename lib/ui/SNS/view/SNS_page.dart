@@ -6,8 +6,10 @@ import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポ
 import 'dart:math' as math;
 
 class SNSPage extends StatefulWidget {
+  const SNSPage({super.key});
+
   @override
-  _SNSPageState createState() => _SNSPageState();
+  State<SNSPage> createState() => _SNSPageState();
 }
 
 class _SNSPageState extends State<SNSPage> with TickerProviderStateMixin {

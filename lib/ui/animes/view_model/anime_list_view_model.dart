@@ -226,7 +226,7 @@ class AnimeListViewModel extends ChangeNotifier {
       return;
     }
 
-    // ■ オフラインモードから書き込み用にオンラインへ切り替え
+    // オンラインへ切り替え
     await FirebaseFirestore.instance.enableNetwork();
 
     try {
@@ -275,7 +275,7 @@ class AnimeListViewModel extends ChangeNotifier {
 
       print('セーブ処理中');
       for (var b in batches) {
-        await b.commit(); // ← サーバーとやり取りするためオンライン必須
+        await b.commit(); // サーバーとやり取りするためオンライン必須
       }
       
       // 登録済みアニメのセットを更新
@@ -288,7 +288,7 @@ class AnimeListViewModel extends ChangeNotifier {
     } catch (e) {
       print('セーブ処理中にエラーが発生しました: $e');
     } finally {
-      // ■ 書き込みが終わったら再びオフラインへ切り替え
+      // 書き込みが終わったら再びオフラインへ切り替え
       // await FirebaseFirestore.instance.disableNetwork();
       _safeNotifyListeners();
     }

@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animeishi/ui/camera/view/scandata.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
+import 'package:animeishi/utils/error_handler.dart';
+import 'package:animeishi/utils/validators.dart';
 import 'dart:math' as math;
 
 class ScannerWidget extends StatefulWidget {
@@ -27,40 +29,130 @@ class _ScannerWidgetState extends State<ScannerWidget>
   bool _isScanning = true;
   DateTime? _lastScanTime;
 
-  /// **Firestore にスキャン情報を保存する**
-  Future<void> saveUserIdToFirestore(String scannedUserId) async {
+  /// **Firestore にスキャン情報を保存する（検証強化版）**
+  Future<void> saveUserIdToFirestore(String scannedData) async {
     try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
+      final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser == null) {
-        print("エラー: ログインしていません");
+        _showError(ErrorHandler.getQRErrorMessage('unauthenticated'));
         return;
       }
 
       String currentUserId = currentUser.uid;
 
-      // 自分のリストに相手を保存
+      // 1. QRコードデータの検証
+      final userId = _extractUserIdFromQR(scannedData);
+      if (userId == null) {
+        _showError(ErrorHandler.getQRErrorMessage('invalid_format'));
+        return;
+      }
+
+      // 2. ユーザーID形式の検証
+      final validationError = Validators.validateUserId(userId);
+      if (validationError != null) {
+        _showError(validationError);
+        return;
+      }
+
+      // 3. 自分自身のチェック
+      if (currentUser.uid == userId) {
+        _showError(ErrorHandler.getQRErrorMessage('self_scan'));
+        return;
+      }
+
+      // 4. ユーザーの存在確認
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (!userDoc.exists) {
+        _showError(ErrorHandler.getQRErrorMessage('user_not_found'));
+        return;
+      }
+
+      // 5. 既にフレンドかチェック
+      final friendDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('meishies')
+          .doc(userId)
+          .get();
+
+      if (friendDoc.exists) {
+        _showError(ErrorHandler.getQRErrorMessage('already_friend'));
+        return;
+      }
+
+      // 6. フレンド追加処理（双方向）
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUserId)
           .collection('meishies')
-          .doc(scannedUserId)
+          .doc(userId)
           .set({
         'scanned_at': FieldValue.serverTimestamp(),
       });
 
-      // 相手のリストに自分を保存
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(scannedUserId)
+          .doc(userId)
           .collection('meishies')
           .doc(currentUserId)
           .set({
         'scanned_at': FieldValue.serverTimestamp(),
       });
 
-      print("ユーザーID $scannedUserId を Firestore に保存しました");
+      _showSuccess('フレンドを追加しました');
+      ErrorHandler.logInfo('QR Scan', 'Successfully added friend: $userId');
     } catch (e) {
-      print("Firestore への保存に失敗しました: $e");
+      ErrorHandler.logError('QR scan', e);
+      _showError('フレンド追加に失敗しました');
+    }
+  }
+
+  /// QRコードからユーザーIDを抽出
+  String? _extractUserIdFromQR(String qrData) {
+    // QRコードのデータ形式に応じて調整
+    // 例: "animeishi://user/{userId}" 形式の場合
+    final uri = Uri.tryParse(qrData);
+    if (uri?.scheme == 'animeishi' && uri?.pathSegments.length == 2) {
+      if (uri!.pathSegments[0] == 'user') {
+        return uri.pathSegments[1];
+      }
+    }
+
+    // 直接ユーザーIDの場合
+    if (RegExp(r'^[a-zA-Z0-9]{28}$').hasMatch(qrData)) {
+      return qrData;
+    }
+
+    return null;
+  }
+
+  /// エラーメッセージ表示
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  /// 成功メッセージ表示
+  void _showSuccess(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
