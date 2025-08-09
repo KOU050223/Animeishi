@@ -5,7 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:animeishi/ui/animes/view/anime_list_page.dart';
 import 'package:animeishi/ui/profile/view/profile_page.dart';
 import 'package:animeishi/ui/camera/view/qr_page.dart';
-import 'package:animeishi/ui/SNS/view/SNS_page.dart';
+import 'package:animeishi/ui/sns/view/sns_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
