@@ -3,6 +3,7 @@ import 'package:animeishi/ui/auth/components/email_login_validation.dart';
 import 'package:animeishi/ui/auth/components/email_login_dialogs.dart';
 import 'package:animeishi/ui/auth/components/email_login_widgets.dart';
 import 'package:animeishi/ui/auth/components/auth_widgets.dart';
+import 'package:animeishi/config/feature_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
@@ -110,7 +111,9 @@ class _EmailLoginPageState extends State<EmailLoginPage>
           .user;
 
       if (user != null) {
-        print("ログインしました ${user.email}, ${user.uid}");
+        if (FeatureFlags.enableDebugLogs) {
+          print("ログインしました ${user.email}, ${user.uid}");
+        }
 
         EmailLoginDialogs.showSuccessMessage(context);
 
@@ -124,7 +127,9 @@ class _EmailLoginPageState extends State<EmailLoginPage>
         }
       }
     } catch (e) {
-      print('ログインエラー: $e');
+      if (FeatureFlags.enableDebugLogs) {
+        print('ログインエラー: $e');
+      }
 
       setState(() {
         errorMessage =
@@ -278,19 +283,22 @@ class _EmailLoginPageState extends State<EmailLoginPage>
                             // セカンダリボタン
                             Row(
                               children: [
-                                Expanded(
-                                  child: EmailLoginWidgets.buildSecondaryButton(
-                                    text: 'テストログイン',
-                                    icon: Icons.bug_report,
-                                    onPressed: _testLogin,
-                                    colors: [
-                                      Color(0xFF38b2ac).withOpacity(0.8),
-                                      Color(0xFF319795).withOpacity(0.9),
-                                    ],
-                                    isLoading: isLoading,
+                                if (FeatureFlags.enableTestLogin)
+                                  Expanded(
+                                    child:
+                                        EmailLoginWidgets.buildSecondaryButton(
+                                      text: 'テストログイン',
+                                      icon: Icons.bug_report,
+                                      onPressed: _testLogin,
+                                      colors: [
+                                        Color(0xFF38b2ac).withOpacity(0.8),
+                                        Color(0xFF319795).withOpacity(0.9),
+                                      ],
+                                      isLoading: isLoading,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 12),
+                                if (FeatureFlags.enableTestLogin)
+                                  SizedBox(width: 12),
                                 Expanded(
                                   child: EmailLoginWidgets.buildSecondaryButton(
                                     text: 'パスワードリセット',

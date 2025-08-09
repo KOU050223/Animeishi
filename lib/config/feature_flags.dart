@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
+
 /// アプリケーションの機能フラグを管理するクラス
 /// 開発・テスト用の機能を本番環境では無効にするために使用
 class FeatureFlags {
   /// デバッグモードかどうかを判定
-  static const bool _isDebugMode =
-      bool.fromEnvironment('DEBUG', defaultValue: false);
+  /// 開発時（debug build）ではtrue、リリース時（release build）ではfalse
+  static const bool _isDebugMode = kDebugMode;
 
   /// テスト機能を有効にするかどうか
   /// 本番環境では常にfalse、デバッグ時のみtrue
