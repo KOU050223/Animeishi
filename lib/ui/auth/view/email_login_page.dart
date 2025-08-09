@@ -181,18 +181,19 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
+                  onPressed: isLoading ? null : _login,
                   child: isLoading 
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('ログイン'),
-                  onPressed: isLoading ? null : _login,
                 ),
                 const SizedBox(height: 10),
-                if (FeatureFlags.enableTestLogin) 
+                if (FeatureFlags.enableTestLogin)
                   ElevatedButton(
                     onPressed: isLoading ? null : _testLogin,
                     child: const Text('テストログイン'),
                   ),
-                const SizedBox(height: 10),
+                if (FeatureFlags.enableTestLogin)
+                  const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: isLoading ? null : _resetPassword,
                   child: const Text('パスワードリセット'),
