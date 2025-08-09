@@ -7,16 +7,24 @@ enum SortOrder { tid, year, name }
 
 class AnimeListViewModel extends ChangeNotifier {
   List<Map<String, dynamic>> _animeList = [];
+  List<Map<String, dynamic>> _filteredAnimeList = [];
   bool _isLoading = false;
-  Set<String> _selectedAnime = {}; // 選択されたアニメのTIDを保持するセット
+  Set<String> _selectedAnime = {}; // 一時的に選択されたアニメのTIDを保持するセット
+  Set<String> _registeredAnime = {}; // 登録済みアニメのTIDを保持するセット
   SortOrder _sortOrder = SortOrder.tid; //デフォルトはtid順
   bool _isAscending = true; //デフォルトは昇順
+  bool _disposed = false; // dispose状態を追跡
+  String _searchQuery = ''; // 検索クエリ
 
-  List<Map<String, dynamic>> get animeList => _animeList;
+  List<Map<String, dynamic>> get animeList => _filteredAnimeList.isNotEmpty || _searchQuery.isNotEmpty 
+      ? _filteredAnimeList 
+      : _animeList;
   bool get isLoading => _isLoading;
-  Set<String> get selectedAnime => _selectedAnime; // 選択されたアニメのTIDを取得するゲッター
+  Set<String> get selectedAnime => _selectedAnime; // 一時的に選択されたアニメのTIDを取得するゲッター
+  Set<String> get registeredAnime => _registeredAnime; // 登録済みアニメのTIDを取得するゲッター
   SortOrder get sortOrder => _sortOrder; //ソート順を取得するゲッター
   bool get isAscending => _isAscending; //昇順 or 降順を取得
+  String get searchQuery => _searchQuery; // 検索クエリを取得するゲッター
 
   //ソート順の変更
   void setSortOrder(SortOrder order) {
@@ -28,6 +36,61 @@ class AnimeListViewModel extends ChangeNotifier {
   void toggleSortOrder() {
     _isAscending = !_isAscending;
     sortAnimeList();
+  }
+
+  // 検索機能
+  void searchAnime(String query) {
+    _searchQuery = query.toLowerCase();
+    if (_searchQuery.isEmpty) {
+      _filteredAnimeList = [];
+    } else {
+      _filteredAnimeList = _animeList.where((anime) {
+        final title = anime['title'].toString().toLowerCase();
+        final titleYomi = anime['titleyomi'].toString().toLowerCase();
+        final tid = anime['tid'].toString();
+        final year = anime['firstyear'].toString();
+        
+        return title.contains(_searchQuery) ||
+               titleYomi.contains(_searchQuery) ||
+               tid.contains(_searchQuery) ||
+               year.contains(_searchQuery);
+      }).toList();
+      
+      // 検索結果もソートする
+      _sortFilteredList();
+    }
+    _safeNotifyListeners();
+  }
+
+  // フィルタされたリストのソート
+  void _sortFilteredList() {
+    _filteredAnimeList.sort((a, b) {
+      int compare = 0;
+      switch (_sortOrder) {
+        case SortOrder.tid:
+          compare = int.parse(a['tid'].toString())
+              .compareTo(int.parse(b['tid'].toString()));
+          break;
+
+        case SortOrder.year:
+          int aYear = int.tryParse(a['firstyear'].toString()) ?? 0;
+          int bYear = int.tryParse(b['firstyear'].toString()) ?? 0;
+          int aMonth = int.tryParse(a['firstmonth'].toString()) ?? 0;
+          int bMonth = int.tryParse(b['firstmonth'].toString()) ?? 0;
+
+          if (aYear != bYear) {
+            compare = aYear.compareTo(bYear);
+          } else {
+            compare = aMonth.compareTo(bMonth);
+          }
+          break;
+
+        case SortOrder.name:
+          compare = a['title'].toString().compareTo(b['title'].toString());
+          break;
+      }
+      return _isAscending ? compare : -compare;
+    });
   }
 
   //ソート処理(昇順・降順対応)
@@ -61,7 +124,20 @@ class AnimeListViewModel extends ChangeNotifier {
       }
       return _isAscending ? compare : -compare; //昇順・降順の切り替え
     });
-    notifyListeners();
+    
+    // 検索中の場合は、フィルタされたリストもソートする
+    if (_searchQuery.isNotEmpty) {
+      _sortFilteredList();
+    }
+    
+    _safeNotifyListeners();
+  }
+
+  // 安全にnotifyListenersを呼ぶためのヘルパーメソッド
+  void _safeNotifyListeners() {
+    if (!_disposed) {
+      notifyListeners();
+    }
   }
 
   Future<void> initOfflineModeAndLoadCache() async {
@@ -90,13 +166,13 @@ class AnimeListViewModel extends ChangeNotifier {
 
       _animeList = cacheList;
       sortAnimeList(); //ソートの適用
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> fetchFromServer() async {
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       await FirebaseFirestore.instance.enableNetwork();
@@ -128,18 +204,18 @@ class AnimeListViewModel extends ChangeNotifier {
       debugPrint('Error fetching from server: $e');
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> selectAnime(String tid) async {
     _selectedAnime.add(tid);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> deselectAnime(String tid) async {
     _selectedAnime.remove(tid);
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> saveSelectedAnime() async {
@@ -197,39 +273,24 @@ class AnimeListViewModel extends ChangeNotifier {
         batches.add(batch);
       }
 
-      // Firestoreから削除されたアニメを削除
-      final snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('selectedAnime')
-          .get();
-      batch = FirebaseFirestore.instance.batch();
-      batchSize = 0;
-
-      for (var doc in snapshot.docs) {
-        if (!_selectedAnime.contains(doc.id)) {
-          batch.delete(doc.reference);
-          batchSize++;
-
-          if (batchSize == 500) {
-            batches.add(batch);
-            batch = FirebaseFirestore.instance.batch();
-            batchSize = 0;
-          }
-        }
-      }
-
-      if (batchSize > 0) {
-        batches.add(batch);
-      }
-
       print('セーブ処理中');
       for (var b in batches) {
         await b.commit(); // サーバーとやり取りするためオンライン必須
       }
+      
+      // 登録済みアニメのセットを更新
+      _registeredAnime.addAll(_selectedAnime);
+      
+      // 一時選択をクリア
+      _selectedAnime.clear();
+      
       print('セーブ処理完了');
     } catch (e) {
       print('セーブ処理中にエラーが発生しました: $e');
+    } finally {
+      // 書き込みが終わったら再びオフラインへ切り替え
+      // await FirebaseFirestore.instance.disableNetwork();
+      _safeNotifyListeners();
     }
   }
 
@@ -276,15 +337,19 @@ class AnimeListViewModel extends ChangeNotifier {
         await b.commit(); // ← サーバーとのやり取りを行うのでオンライン必須
       }
 
+      // 登録済みアニメのセットから削除
+      _registeredAnime.removeAll(_selectedAnime);
+      
       // ローカルで選択されたアニメのセットをクリア
       _selectedAnime.clear();
-      notifyListeners();
+      
       print('削除処理完了');
     } catch (e) {
       print('削除処理中にエラーが発生しました: $e');
     } finally {
       // ■ 削除が終わったら再びオフラインへ切り替え
       // await FirebaseFirestore.instance.disableNetwork();
+      _safeNotifyListeners();
     }
   }
 
@@ -299,11 +364,22 @@ class AnimeListViewModel extends ChangeNotifier {
           .collection('selectedAnime')
           .get();
 
-      _selectedAnime = snapshot.docs.map((doc) => doc.id).toSet();
-      notifyListeners();
+      // 登録済みアニメのセットを更新
+      _registeredAnime = snapshot.docs.map((doc) => doc.id).toSet();
+      
+      // 一時選択をクリア（登録済みのものは選択状態から外す）
+      _selectedAnime.clear();
+      
+      _safeNotifyListeners();
       print('ロード処理完了');
     } else {
       print('user is null');
     }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

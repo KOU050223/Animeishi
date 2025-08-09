@@ -2,18 +2,41 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ユーザー認証が必要な基本ルール
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 2, 21);
+    // ユーザー個人データ - 本人のみアクセス可能
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      // ユーザーのサブコレクション（selectedAnime, meishies, friends等）
+      match /{subcollection}/{document} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // アニメタイトルデータ - 認証済みユーザーは読み取りのみ
+    match /titles/{document} {
+      allow read: if isAuthenticated();
+      allow write: if false; // 管理者のみ（コンソールから）
+    }
+    
+    // フレンド関係 - 関係者のみアクセス可能
+    match /friends/{document} {
+      allow read, write: if isAuthenticated() && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.uid == resource.data.friendId);
+    }
+    
+    // その他のコレクションは認証必須
+    match /{collection}/{document} {
+      allow read, write: if isAuthenticated();
     }
   }
 }

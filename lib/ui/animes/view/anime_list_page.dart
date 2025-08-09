@@ -1,186 +1,501 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_model/anime_list_view_model.dart';
+import '../components/anime_card.dart';
+import '../components/anime_list_header.dart';
+import '../components/anime_notification.dart';
 import 'package:animeishi/model/factory/anime_list_factory.dart';
-import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート
+import 'package:animeishi/ui/home/view/home_page.dart';
+import 'package:animeishi/ui/auth/components/auth_widgets.dart';
+import 'package:animeishi/ui/watch/view/watch_anime.dart';
 
 class AnimeListPage extends StatelessWidget {
+  const AnimeListPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) {
         final viewModel = AnimeListViewModel();
-        viewModel.fetchFromServer(); // 初期化時にアニメリストと選択されたアニメをロード
+        viewModel.fetchFromServer();
         return viewModel;
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('アニメリスト'),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              // 戻るボタンを押したときにHomePageに遷移
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()), // HomePageに遷移
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFD6BCFA), // ソフトパープル
+                Color(0xFFBFDBFE), // ソフトブルー
+                Color(0xFFFBCFE8), // ソフトピンク
+                Color(0xFFD1FAE5), // ソフトグリーン
+              ],
+            ),
+          ),
+          child: Consumer<AnimeListViewModel>(
+            builder: (context, viewModel, child) {
+              return CustomScrollView(
+                physics: BouncingScrollPhysics(),
+                slivers: [
+                  // カスタムAppBar
+                  SliverAppBar(
+                    expandedHeight: 120,
+                    floating: false,
+                    pinned: true,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    leading: Container(
+                      margin: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => HomePage()),
+                            );
+                          },
+                          child: Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Color(0xFF667eea),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                    flexibleSpace: FlexibleSpaceBar(
+                      centerTitle: true,
+                      title: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.9),
+                              Colors.white.withOpacity(0.7),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFF667eea),
+                                    Color(0xFF764ba2),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.movie_outlined,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'アニメリスト',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2D3748),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ヘッダー部分
+                  SliverToBoxAdapter(
+                    child: AnimeListHeader(
+                      viewModel: viewModel,
+                      onFetchFromServer: () => _handleFetchFromServer(context, viewModel),
+                      onSaveSelected: () => _handleSaveSelected(context, viewModel),
+                    ),
+                  ),
+
+                  // アニメリスト
+                  SliverPadding(
+                    padding: EdgeInsets.only(top: 20, bottom: 20),
+                    sliver: viewModel.animeList.isEmpty
+                        ? SliverToBoxAdapter(
+                            child: _buildEmptyState(),
+                          )
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final anime = viewModel.animeList[index];
+                                final tid = anime['tid'] ?? 'N/A';
+                                final isSelected = viewModel.selectedAnime.contains(tid);
+                                final isRegistered = viewModel.registeredAnime.contains(tid);
+
+                                // 登録済みアニメの場合はスワイプで削除可能にする
+                                if (isRegistered) {
+                                  return Dismissible(
+                                    key: Key('anime_$tid'),
+                                    direction: DismissDirection.endToStart,
+                                    background: Container(
+                                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.red[400]!,
+                                            Colors.red[600]!,
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      alignment: Alignment.centerRight,
+                                      padding: EdgeInsets.only(right: 30),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.white,
+                                            size: 32,
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            '削除',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    confirmDismiss: (direction) async {
+                                      return await _showUnregisterDialog(
+                                        context, 
+                                        viewModel, 
+                                        tid, 
+                                        anime['title'] ?? 'タイトル不明'
+                                      );
+                                    },
+                                    child: _buildAnimeCard(context, anime, isSelected, isRegistered, viewModel),
+                                  );
+                                } else {
+                                  return _buildAnimeCard(context, anime, isSelected, isRegistered, viewModel);
+                                }
+                              },
+                              childCount: viewModel.animeList.length,
+                            ),
+                          ),
+                  ),
+                ],
               );
             },
           ),
         ),
-        body: Consumer<AnimeListViewModel>(
-          builder: (context, viewModel, child) {
-            return Column(
-              children: [
-                // ▼ ソート順と昇降ボタンを追加 ▼
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("ソート順: "),
-                      DropdownButton<SortOrder>(
-                        value: viewModel.sortOrder, // 現在のソート順
-                        underline: SizedBox.shrink(), // 下線を非表示
-                        onChanged: (SortOrder? newValue) {
-                          if (newValue != null) {
-                            viewModel.setSortOrder(newValue); // ソート順を変更
-                          }
-                        },
-                        items: [
-                          DropdownMenuItem(
-                            value: SortOrder.tid,
-                            child: Text('TID順'),
-                          ),
-                          DropdownMenuItem(
-                            value: SortOrder.year,
-                            child: Text('年代順'),
-                          ),
-                          DropdownMenuItem(
-                            value: SortOrder.name,
-                            child: Text('名前順'),
-                          ),
-                        ],
-                      ),
-                      // ▼ 昇順・降順ボタン ▼
-                      IconButton(
-                        icon: Icon(viewModel.isAscending
-                            ? Icons.arrow_upward
-                            : Icons.arrow_downward),
-                        onPressed: viewModel.toggleSortOrder,
-                      ),
-                    ],
-                  ),
-                ),
-                // 「オンラインから取得」ボタン
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton.icon(
-                    onPressed:
-                        viewModel.isLoading ? null : viewModel.fetchFromServer,
-                    icon: viewModel.isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.cloud_download),
-                    label: Text(viewModel.isLoading ? '読み込み中...' : 'オンラインから取得'),
-                  ),
-                ),
-                // 「登録」ボタンと「削除」ボタン
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: viewModel.isLoading
-                            ? null
-                            : () async {
-                                try {
-                                  await viewModel.deleteSelectedAnime();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('選択したアニメを削除しました'),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('削除に失敗しました: $e'),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                }
-                              },
-                        icon: const Icon(Icons.delete),
-                        label: const Text('削除'),
-                      ),
-                      SizedBox(width: 16), // ボタン間のスペース
-                      ElevatedButton.icon(
-                        onPressed: viewModel.isLoading
-                            ? null
-                            : () async {
-                                try {
-                                  await viewModel.saveSelectedAnime();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('選択したアニメを登録しました'),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('登録に失敗しました: $e'),
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                }
-                              },
-                        icon: const Icon(Icons.save),
-                        label: const Text('登録'),
-                      ),
-                    ],
-                  ),
-                ),
-                // アニメリスト表示
-                Expanded(
-                  child: viewModel.animeList.isEmpty
-                      ? const Center(child: Text('リストがありません'))
-                      : ListView.builder(
-                          itemCount: viewModel.animeList.length,
-                          itemBuilder: (context, index) {
-                            final anime = viewModel.animeList[index];
-                            final tid = anime['tid'] ?? 'N/A';
-                            final title = anime['title'] ?? 'タイトル不明';
-                            final yomi = anime['titleyomi'] ?? '';
-                            final firstMonth = anime['firstmonth'] ?? '';
-                            final firstYear = anime['firstyear'] ?? '';
-                            final comment = anime['comment'] ?? '';
+      ),
+    );
+  }
 
-                            return CheckboxListTile(
-                              title: Text('$title ($tid)'),
-                              subtitle: Text('$firstYear年'
-                                  '$firstMonth月'),
-                              value: viewModel.selectedAnime.contains(tid),
-                              onChanged: (bool? value) {
-                                if (value == true) {
-                                  viewModel.selectAnime(tid);
-                                } else {
-                                  viewModel.deselectAnime(tid);
-                                }
-                              },
-                            );
-                          },
-                        ),
+  Widget _buildAnimeCard(BuildContext context, Map<String, dynamic> anime, bool isSelected, bool isRegistered, AnimeListViewModel viewModel) {
+    final tid = anime['tid'] ?? 'N/A';
+    
+    return AnimeCard(
+      anime: anime,
+      isSelected: isSelected,
+      isRegistered: isRegistered,
+      onTap: () {
+        // アニメ詳細画面に遷移
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WatchAnimePage(anime: anime),
+          ),
+        );
+      },
+      onSelectToggle: !isRegistered ? () {
+        // 選択状態の切り替え（登録済みでない場合のみ）
+        if (isSelected) {
+          viewModel.deselectAnime(tid);
+        } else {
+          viewModel.selectAnime(tid);
+        }
+      } : null,
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 32, vertical: 60),
+      padding: EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.95),
+            Colors.white.withOpacity(0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF667eea).withOpacity(0.2),
+                  Color(0xFF764ba2).withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Icon(
+              Icons.movie_outlined,
+              size: 40,
+              color: Color(0xFF667eea).withOpacity(0.6),
+            ),
+          ),
+          SizedBox(height: 24),
+          Text(
+            'アニメリストが空です',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2D3748),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '「オンラインから取得」ボタンを押して\nアニメデータを読み込んでください',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF718096),
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleFetchFromServer(BuildContext context, AnimeListViewModel viewModel) async {
+    try {
+      await viewModel.fetchFromServer();
+      final count = viewModel.animeList.length;
+      AnimeNotification.showSuccess(
+        context, 
+        'オンライン取得完了',
+        subtitle: '$count件のアニメを取得しました',
+      );
+    } catch (e) {
+      AnimeNotification.showError(
+        context, 
+        '取得エラー',
+        subtitle: 'データの取得に失敗しました',
+      );
+    }
+  }
+
+  Future<void> _handleSaveSelected(BuildContext context, AnimeListViewModel viewModel) async {
+    try {
+      final selectedCount = viewModel.selectedAnime.length;
+      await viewModel.saveSelectedAnime();
+      AnimeNotification.showSuccess(
+        context, 
+        'アニメ登録完了',
+        subtitle: '$selectedCount件のアニメを登録しました',
+      );
+    } catch (e) {
+      AnimeNotification.showError(
+        context, 
+        '登録エラー',
+        subtitle: 'アニメの登録に失敗しました',
+      );
+    }
+  }
+
+  Future<bool?> _showUnregisterDialog(BuildContext context, AnimeListViewModel viewModel, String tid, String title) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withOpacity(0.95),
+                  Colors.white.withOpacity(0.9),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
                 ),
               ],
-            );
-          },
-        ),
-      ),
+            ),
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.red[400]!,
+                        Colors.red[600]!,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Icon(
+                    Icons.warning_outlined,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+                
+                SizedBox(height: 20),
+                
+                Text(
+                  '登録解除確認',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF2D3748),
+                  ),
+                ),
+                
+                SizedBox(height: 12),
+                
+                Text(
+                  '「$title」を\n登録済みリストから削除しますか？',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF718096),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                SizedBox(height: 24),
+                
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[300],
+                          foregroundColor: Colors.grey[700],
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'キャンセル',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            // 選択状態にして削除処理を実行
+                            viewModel.selectAnime(tid);
+                            await viewModel.deleteSelectedAnime();
+                            Navigator.of(context).pop(true);
+                            AnimeNotification.showSuccess(
+                              context,
+                              '削除完了',
+                              subtitle: '「$title」を登録済みリストから削除しました',
+                            );
+                          } catch (e) {
+                            Navigator.of(context).pop(false);
+                            AnimeNotification.showError(
+                              context,
+                              '削除エラー',
+                              subtitle: 'アニメの削除に失敗しました',
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[400],
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 5,
+                          shadowColor: Colors.red.withOpacity(0.3),
+                        ),
+                        child: Text(
+                          '削除',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

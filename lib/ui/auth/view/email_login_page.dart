@@ -1,20 +1,27 @@
 import 'package:animeishi/ui/home/view/home_page.dart';
+import 'package:animeishi/ui/auth/components/email_login_validation.dart';
+import 'package:animeishi/ui/auth/components/email_login_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../components/background_animation.dart';
 
 class EmailLoginPage extends StatefulWidget {
   const EmailLoginPage({Key? key}) : super(key: key);
 
   @override
-  _EmailLoginPage createState() => _EmailLoginPage();
+  _EmailLoginPageState createState() => _EmailLoginPageState();
 }
 
-class _EmailLoginPage extends State<EmailLoginPage> {
+class _EmailLoginPageState extends State<EmailLoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool hidePassword = true;
   String errorMessage = '';
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -24,111 +31,139 @@ class _EmailLoginPage extends State<EmailLoginPage> {
   }
 
   Future<void> _login() async {
+    final emailError = EmailLoginValidation.validateEmail(emailController.text);
+    final passwordError = EmailLoginValidation.validatePassword(passwordController.text);
+    
+    if (emailError != null || passwordError != null) {
+      EmailLoginDialogs.showValidationDialog(context, emailError, passwordError);
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
     try {
-      final User? user = (await FirebaseAuth.instance
-              .signInWithEmailAndPassword(
-                  email: emailController.text,
-                  password: passwordController.text))
+      final User? user = (await FirebaseAuth.instance.signInWithEmailAndPassword(
+              email: emailController.text.trim(), 
+              password: passwordController.text))
           .user;
 
       if (user != null) {
         print("ログインしました ${user.email}, ${user.uid}");
-
-        emailController.clear();
-        passwordController.clear();
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
+        
+        EmailLoginDialogs.showSuccessMessage(context);
+        
+        await Future.delayed(Duration(milliseconds: 1500));
+        
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        }
       }
     } catch (e) {
+      print('ログインエラー: $e');
+      
       setState(() {
-        errorMessage = 'メールアドレスまたはパスワードが間違っています';
+        errorMessage = EmailLoginValidation.getFirebaseErrorMessage(e.toString());
       });
-      print(e);
+      
+      EmailLoginDialogs.showErrorDialog(context, errorMessage);
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _testLogin() async {
-    try {
-      emailController.text = 'test@test.com';
-      passwordController.text = 'password';
-
-      final User? user = (await FirebaseAuth.instance
-              .signInWithEmailAndPassword(
-                  email: emailController.text,
-                  password: passwordController.text))
-          .user;
-
-      if (user != null) {
-        print("ログインしました ${user.email}, ${user.uid}");
-
-        emailController.clear();
-        passwordController.clear();
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        errorMessage = 'メールアドレスまたはパスワードが間違っています';
-      });
-      print(e);
-    }
+    emailController.text = 'test@test.com';
+    passwordController.text = 'password';
+    await _login();
   }
 
   Future<void> _resetPassword() async {
+    final emailError = EmailLoginValidation.validateEmail(emailController.text);
+    
+    if (emailError != null) {
+      EmailLoginDialogs.showValidationDialog(context, emailError, null);
+      return;
+    }
+
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: emailController.text);
-      print("${emailController.text}へパスワードリセット用のメールを送信しました");
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text.trim());
+      
+      EmailLoginDialogs.showInfoDialog(
+        context,
+        'パスワードリセット',
+        '${emailController.text}へパスワードリセット用のメールを送信しました',
+        Icons.email_outlined,
+        Colors.blue,
+      );
     } catch (e) {
-      print(e);
+      EmailLoginDialogs.showErrorDialog(context, 'パスワードリセットメールの送信に失敗しました');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BackgroundAnimation1(
-        size: MediaQuery.of(context).size,
-        child: SingleChildScrollView(
-          // スクロール可能に変更
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF667eea),
+              Color(0xFF764ba2),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
                 const Text(
-                  'Login',
+                  'ログイン',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
                   controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    icon: Icon(Icons.mail),
+                    icon: Icon(Icons.mail, color: Colors.white),
                     hintText: 'hogehoge@email.com',
                     labelText: 'Email Address',
+                    labelStyle: TextStyle(color: Colors.white),
+                    hintStyle: TextStyle(color: Colors.white70),
                   ),
+                  style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: passwordController,
                   obscureText: hidePassword,
                   decoration: InputDecoration(
-                    icon: const Icon(Icons.lock),
+                    icon: const Icon(Icons.lock, color: Colors.white),
                     labelText: 'Password',
+                    labelStyle: const TextStyle(color: Colors.white),
                     suffixIcon: IconButton(
                       icon: Icon(
                         hidePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.white,
                       ),
                       onPressed: () {
                         setState(() {
@@ -137,18 +172,23 @@ class _EmailLoginPage extends State<EmailLoginPage> {
                       },
                     ),
                   ),
+                  style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  child: const Text('ログイン'),
-                  onPressed: _login,
+                  child: isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('ログイン'),
+                  onPressed: isLoading ? null : _login,
                 ),
-                // ElevatedButton(
-                //   child: const Text('テストログイン'),
-                //   onPressed: _testLogin,
-                // ),
+                const SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: _resetPassword,
+                  child: const Text('テストログイン'),
+                  onPressed: isLoading ? null : _testLogin,
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: isLoading ? null : _resetPassword,
                   child: const Text('パスワードリセット'),
                 ),
                 if (errorMessage.isNotEmpty)
