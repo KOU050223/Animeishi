@@ -1,6 +1,7 @@
 import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:animeishi/ui/auth/components/email_login_validation.dart';
 import 'package:animeishi/ui/auth/components/email_login_dialogs.dart';
+import 'package:animeishi/config/feature_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -51,7 +52,9 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
           .user;
 
       if (user != null) {
-        print("ログインしました ${user.email}, ${user.uid}");
+        if (FeatureFlags.enableDebugLogs) {
+          print("ログインしました ${user.email}, ${user.uid}");
+        }
         
         EmailLoginDialogs.showSuccessMessage(context);
         
@@ -65,7 +68,9 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
         }
       }
     } catch (e) {
-      print('ログインエラー: $e');
+      if (FeatureFlags.enableDebugLogs) {
+        print('ログインエラー: $e');
+      }
       
       setState(() {
         errorMessage = EmailLoginValidation.getFirebaseErrorMessage(e.toString());
@@ -182,10 +187,11 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
                   onPressed: isLoading ? null : _login,
                 ),
                 const SizedBox(height: 10),
-                ElevatedButton(
-                  child: const Text('テストログイン'),
-                  onPressed: isLoading ? null : _testLogin,
-                ),
+                if (FeatureFlags.enableTestLogin) 
+                  ElevatedButton(
+                    onPressed: isLoading ? null : _testLogin,
+                    child: const Text('テストログイン'),
+                  ),
                 const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: isLoading ? null : _resetPassword,
