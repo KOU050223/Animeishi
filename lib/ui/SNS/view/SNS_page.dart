@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:animeishi/ui/SNS/view/friend_watch_list_page.dart';
+import 'package:animeishi/ui/sns/view/friend_watch_list_page.dart';
 import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 import 'dart:math' as math;
 
