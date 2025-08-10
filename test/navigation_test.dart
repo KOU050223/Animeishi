@@ -6,7 +6,7 @@ void main() {
     testWidgets('BottomNavigationBarの基本機能テスト', (WidgetTester tester) async {
       // シンプルなBottomNavigationBarのテスト
       int currentIndex = 0;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -17,9 +17,12 @@ void main() {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
                 BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'アニメ'),
-                BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
-                BottomNavigationBarItem(icon: Icon(Icons.people), label: 'フレンド'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.people), label: 'フレンド'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: 'プロフィール'),
               ],
             ),
           ),
@@ -30,9 +33,8 @@ void main() {
       expect(find.byType(BottomNavigationBar), findsOneWidget);
 
       // BottomNavigationBar内のアイテム数を確認
-      final bottomNavBarWidget = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar)
-      );
+      final bottomNavBarWidget =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(bottomNavBarWidget.items.length, 5);
 
       // 各ラベルが存在することを確認
@@ -53,9 +55,12 @@ void main() {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
                 BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'アニメ'),
-                BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
-                BottomNavigationBarItem(icon: Icon(Icons.people), label: 'フレンド'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.people), label: 'フレンド'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: 'プロフィール'),
               ],
             ),
           ),
@@ -82,10 +87,10 @@ void main() {
 
       // Scaffoldが存在することを確認
       expect(find.byType(Scaffold), findsOneWidget);
-      
+
       // AppBarが存在することを確認
       expect(find.byType(AppBar), findsOneWidget);
-      
+
       // テキストが表示されることを確認
       expect(find.text('テストページ'), findsOneWidget);
       expect(find.text('テスト内容'), findsOneWidget);
@@ -103,9 +108,12 @@ void main() {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
                 BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'アニメ'),
-                BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
-                BottomNavigationBarItem(icon: Icon(Icons.people), label: 'フレンド'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.people), label: 'フレンド'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: 'プロフィール'),
               ],
             ),
           ),
@@ -114,11 +122,10 @@ void main() {
 
       // BottomNavigationBarの存在を確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // セマンティクス情報の基本的な存在確認
-      final bottomNavBarWidget = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar)
-      );
+      final bottomNavBarWidget =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(bottomNavBarWidget.items.length, 5);
     });
 
@@ -132,9 +139,12 @@ void main() {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
                 BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'アニメ'),
-                BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
-                BottomNavigationBarItem(icon: Icon(Icons.people), label: 'フレンド'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.people), label: 'フレンド'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: 'プロフィール'),
               ],
             ),
           ),
@@ -143,7 +153,8 @@ void main() {
 
       // BottomNavigationBarのタッチターゲットが適切なサイズであることを確認
       final bottomNavBar = tester.getSize(find.byType(BottomNavigationBar));
-      expect(bottomNavBar.height, greaterThanOrEqualTo(56.0)); // Material Design minimum
+      expect(bottomNavBar.height,
+          greaterThanOrEqualTo(56.0)); // Material Design minimum
     });
   });
 
@@ -151,7 +162,7 @@ void main() {
     testWidgets('小さい画面でのレイアウト', (WidgetTester tester) async {
       // 小さい画面サイズを設定
       tester.view.physicalSize = const Size(320, 568);
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -162,9 +173,12 @@ void main() {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
                 BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'アニメ'),
-                BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
-                BottomNavigationBarItem(icon: Icon(Icons.people), label: 'フレンド'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.people), label: 'フレンド'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: 'プロフィール'),
               ],
             ),
           ),
@@ -173,10 +187,10 @@ void main() {
 
       // BottomNavigationBarが存在することを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // テキストが表示されることを確認
       expect(find.text('小さい画面テスト'), findsOneWidget);
-      
+
       // 画面サイズをリセット
       tester.view.reset();
     });
@@ -184,7 +198,7 @@ void main() {
     testWidgets('大きい画面でのレイアウト', (WidgetTester tester) async {
       // 大きい画面サイズを設定
       tester.view.physicalSize = const Size(1024, 768);
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -195,9 +209,12 @@ void main() {
               items: const [
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ホーム'),
                 BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'アニメ'),
-                BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
-                BottomNavigationBarItem(icon: Icon(Icons.people), label: 'フレンド'),
-                BottomNavigationBarItem(icon: Icon(Icons.person), label: 'プロフィール'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.qr_code_scanner), label: 'スキャン'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.people), label: 'フレンド'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.person), label: 'プロフィール'),
               ],
             ),
           ),
@@ -206,10 +223,10 @@ void main() {
 
       // BottomNavigationBarが存在することを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // テキストが表示されることを確認
       expect(find.text('大きい画面テスト'), findsOneWidget);
-      
+
       // 画面サイズをリセット
       tester.view.reset();
     });
