@@ -21,8 +21,16 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # コード品質向上のためのルール
+    prefer_single_quotes: true
+    avoid_print: true
+    unused_import: error
+    unnecessary_import: error
+    
+    # 一時的に警告レベルに下げるルール（段階的に修正予定）
+    deprecated_member_use: warning
+    library_private_types_in_public_api: warning
+    non_constant_identifier_names: warning
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
