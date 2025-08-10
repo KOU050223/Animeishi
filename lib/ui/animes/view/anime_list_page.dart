@@ -67,7 +67,8 @@ class AnimeListPage extends StatelessWidget {
                           onTap: () {
                             Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(builder: (context) => HomePage()),
+                              MaterialPageRoute(
+                                  builder: (context) => HomePage()),
                             );
                           },
                           child: Icon(
@@ -81,7 +82,8 @@ class AnimeListPage extends StatelessWidget {
                     flexibleSpace: FlexibleSpaceBar(
                       centerTitle: true,
                       title: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -137,8 +139,10 @@ class AnimeListPage extends StatelessWidget {
                   SliverToBoxAdapter(
                     child: AnimeListHeader(
                       viewModel: viewModel,
-                      onFetchFromServer: () => _handleFetchFromServer(context, viewModel),
-                      onSaveSelected: () => _handleSaveSelected(context, viewModel),
+                      onFetchFromServer: () =>
+                          _handleFetchFromServer(context, viewModel),
+                      onSaveSelected: () =>
+                          _handleSaveSelected(context, viewModel),
                     ),
                   ),
 
@@ -154,8 +158,10 @@ class AnimeListPage extends StatelessWidget {
                               (context, index) {
                                 final anime = viewModel.animeList[index];
                                 final tid = anime['tid'] ?? 'N/A';
-                                final isSelected = viewModel.selectedAnime.contains(tid);
-                                final isRegistered = viewModel.registeredAnime.contains(tid);
+                                final isSelected =
+                                    viewModel.selectedAnime.contains(tid);
+                                final isRegistered =
+                                    viewModel.registeredAnime.contains(tid);
 
                                 // 登録済みアニメの場合はスワイプで削除可能にする
                                 if (isRegistered) {
@@ -163,7 +169,8 @@ class AnimeListPage extends StatelessWidget {
                                     key: Key('anime_$tid'),
                                     direction: DismissDirection.endToStart,
                                     background: Container(
-                                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      margin: EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: [
@@ -176,7 +183,8 @@ class AnimeListPage extends StatelessWidget {
                                       alignment: Alignment.centerRight,
                                       padding: EdgeInsets.only(right: 30),
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Icon(
                                             Icons.delete_outline,
@@ -197,16 +205,17 @@ class AnimeListPage extends StatelessWidget {
                                     ),
                                     confirmDismiss: (direction) async {
                                       return await _showUnregisterDialog(
-                                        context, 
-                                        viewModel, 
-                                        tid, 
-                                        anime['title'] ?? 'タイトル不明'
-                                      );
+                                          context,
+                                          viewModel,
+                                          tid,
+                                          anime['title'] ?? 'タイトル不明');
                                     },
-                                    child: _buildAnimeCard(context, anime, isSelected, isRegistered, viewModel),
+                                    child: _buildAnimeCard(context, anime,
+                                        isSelected, isRegistered, viewModel),
                                   );
                                 } else {
-                                  return _buildAnimeCard(context, anime, isSelected, isRegistered, viewModel);
+                                  return _buildAnimeCard(context, anime,
+                                      isSelected, isRegistered, viewModel);
                                 }
                               },
                               childCount: viewModel.animeList.length,
@@ -222,9 +231,10 @@ class AnimeListPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAnimeCard(BuildContext context, Map<String, dynamic> anime, bool isSelected, bool isRegistered, AnimeListViewModel viewModel) {
+  Widget _buildAnimeCard(BuildContext context, Map<String, dynamic> anime,
+      bool isSelected, bool isRegistered, AnimeListViewModel viewModel) {
     final tid = anime['tid'] ?? 'N/A';
-    
+
     return AnimeCard(
       anime: anime,
       isSelected: isSelected,
@@ -238,14 +248,16 @@ class AnimeListPage extends StatelessWidget {
           ),
         );
       },
-      onSelectToggle: !isRegistered ? () {
-        // 選択状態の切り替え（登録済みでない場合のみ）
-        if (isSelected) {
-          viewModel.deselectAnime(tid);
-        } else {
-          viewModel.selectAnime(tid);
-        }
-      } : null,
+      onSelectToggle: !isRegistered
+          ? () {
+              // 選択状態の切り替え（登録済みでない場合のみ）
+              if (isSelected) {
+                viewModel.deselectAnime(tid);
+              } else {
+                viewModel.selectAnime(tid);
+              }
+            }
+          : null,
     );
   }
 
@@ -315,43 +327,46 @@ class AnimeListPage extends StatelessWidget {
     );
   }
 
-  Future<void> _handleFetchFromServer(BuildContext context, AnimeListViewModel viewModel) async {
+  Future<void> _handleFetchFromServer(
+      BuildContext context, AnimeListViewModel viewModel) async {
     try {
       await viewModel.fetchFromServer();
       final count = viewModel.animeList.length;
       AnimeNotification.showSuccess(
-        context, 
+        context,
         'オンライン取得完了',
         subtitle: '$count件のアニメを取得しました',
       );
     } catch (e) {
       AnimeNotification.showError(
-        context, 
+        context,
         '取得エラー',
         subtitle: 'データの取得に失敗しました',
       );
     }
   }
 
-  Future<void> _handleSaveSelected(BuildContext context, AnimeListViewModel viewModel) async {
+  Future<void> _handleSaveSelected(
+      BuildContext context, AnimeListViewModel viewModel) async {
     try {
       final selectedCount = viewModel.selectedAnime.length;
       await viewModel.saveSelectedAnime();
       AnimeNotification.showSuccess(
-        context, 
+        context,
         'アニメ登録完了',
         subtitle: '$selectedCount件のアニメを登録しました',
       );
     } catch (e) {
       AnimeNotification.showError(
-        context, 
+        context,
         '登録エラー',
         subtitle: 'アニメの登録に失敗しました',
       );
     }
   }
 
-  Future<bool?> _showUnregisterDialog(BuildContext context, AnimeListViewModel viewModel, String tid, String title) async {
+  Future<bool?> _showUnregisterDialog(BuildContext context,
+      AnimeListViewModel viewModel, String tid, String title) async {
     return await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -398,9 +413,7 @@ class AnimeListPage extends StatelessWidget {
                     size: 30,
                   ),
                 ),
-                
                 SizedBox(height: 20),
-                
                 Text(
                   '登録解除確認',
                   style: TextStyle(
@@ -409,9 +422,7 @@ class AnimeListPage extends StatelessWidget {
                     color: Color(0xFF2D3748),
                   ),
                 ),
-                
                 SizedBox(height: 12),
-                
                 Text(
                   '「$title」を\n登録済みリストから削除しますか？',
                   style: TextStyle(
@@ -421,9 +432,7 @@ class AnimeListPage extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
                 SizedBox(height: 24),
-                
                 Row(
                   children: [
                     Expanded(

@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class DeleteFriendDialog extends StatelessWidget {
   final String friendName;
   final VoidCallback onDelete;
-  const DeleteFriendDialog({required this.friendName, required this.onDelete, super.key});
+  const DeleteFriendDialog(
+      {required this.friendName, required this.onDelete, super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -49,14 +49,14 @@ void main() {
 
       // BottomNavigationBarが存在することを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // BottomNavigationBarItemを直接検索できないため、アイコンで確認
       expect(find.byIcon(Icons.home), findsOneWidget);
       expect(find.byIcon(Icons.movie), findsOneWidget);
       expect(find.byIcon(Icons.qr_code_scanner), findsOneWidget);
       expect(find.byIcon(Icons.people), findsOneWidget);
       expect(find.byIcon(Icons.person), findsOneWidget);
-      
+
       // 各タブのラベルを確認（複数の要素で同じテキストが使われる可能性があるため、最低限の確認）
       expect(find.text('ホーム'), findsAtLeastNWidgets(1));
       expect(find.text('アニメ'), findsAtLeastNWidgets(1));
@@ -65,7 +65,8 @@ void main() {
       expect(find.text('プロフィール'), findsAtLeastNWidgets(1));
 
       // 基本的なアイコンの存在確認（BottomNavigationBarの内部構造は変わることがあるため）
-      final bottomNavBar = tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
+      final bottomNavBar =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(bottomNavBar.items.length, 5);
     });
 
@@ -86,7 +87,7 @@ void main() {
 
       // PageViewが存在することを確認
       expect(find.byType(PageView), findsOneWidget);
-      
+
       // 初期ページの内容を確認
       expect(find.text('Page 1'), findsOneWidget);
     });
@@ -108,10 +109,10 @@ void main() {
       // AppBarが存在することを確認
       expect(find.byType(AppBar), findsOneWidget);
       expect(find.text('アニ名刺'), findsOneWidget);
-      
+
       // Scaffoldが存在することを確認
       expect(find.byType(Scaffold), findsOneWidget);
-      
+
       // コンテンツが表示されることを確認
       expect(find.text('コンテンツ'), findsOneWidget);
     });
@@ -138,13 +139,14 @@ void main() {
 
       // BottomNavigationBarのサイズチェック
       final bottomNavBar = tester.getSize(find.byType(BottomNavigationBar));
-      expect(bottomNavBar.height, greaterThanOrEqualTo(56.0)); // Material Design minimum
+      expect(bottomNavBar.height,
+          greaterThanOrEqualTo(56.0)); // Material Design minimum
     });
 
     testWidgets('レスポンシブテスト - 小画面', (WidgetTester tester) async {
       // 小さい画面サイズを設定
       await tester.binding.setSurfaceSize(Size(320, 568));
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -168,7 +170,7 @@ void main() {
       // コンポーネントが正常に表示されることを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
       expect(find.text('小画面テスト'), findsOneWidget);
-      
+
       // 画面サイズをリセット
       await tester.binding.setSurfaceSize(null);
     });
@@ -176,7 +178,7 @@ void main() {
     testWidgets('レスポンシブテスト - 大画面', (WidgetTester tester) async {
       // 大きい画面サイズを設定
       await tester.binding.setSurfaceSize(Size(1024, 768));
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -200,7 +202,7 @@ void main() {
       // コンポーネントが正常に表示されることを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
       expect(find.text('大画面テスト'), findsOneWidget);
-      
+
       // 画面サイズをリセット
       await tester.binding.setSurfaceSize(null);
     });

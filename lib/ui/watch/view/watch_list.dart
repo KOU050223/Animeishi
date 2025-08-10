@@ -8,11 +8,12 @@ class WatchListPage extends StatefulWidget {
   _WatchListPageState createState() => _WatchListPageState();
 }
 
-class _WatchListPageState extends State<WatchListPage> with TickerProviderStateMixin {
+class _WatchListPageState extends State<WatchListPage>
+    with TickerProviderStateMixin {
   bool _isLoading = true;
   List<Map<String, dynamic>> _animeList = [];
   Set<String> _selectedAnime = {};
-  
+
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
@@ -29,15 +30,16 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
       duration: Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
     _slideAnimation = Tween<Offset>(
       begin: Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
-    
+    ).animate(
+        CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
+
     _fetchSelectedAnime();
   }
 
@@ -72,9 +74,8 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
 
   Future<void> _fetchAnimeDetails() async {
     try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('titles')
-          .get();
+      final snapshot =
+          await FirebaseFirestore.instance.collection('titles').get();
 
       final List<Map<String, dynamic>> fetchedList = snapshot.docs
           .where((doc) => _selectedAnime.contains(doc.id))
@@ -95,7 +96,7 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
         final aYear = int.tryParse(a['firstyear'].toString()) ?? 0;
         final bYear = int.tryParse(b['firstyear'].toString()) ?? 0;
         if (aYear != bYear) return bYear.compareTo(aYear); // 新しい年が先
-        
+
         final aMonth = int.tryParse(a['firstmonth'].toString()) ?? 0;
         final bMonth = int.tryParse(b['firstmonth'].toString()) ?? 0;
         return bMonth.compareTo(aMonth); // 新しい月が先
@@ -105,11 +106,10 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
         _animeList = fetchedList;
         _isLoading = false;
       });
-      
+
       // アニメーション開始
       _fadeController.forward();
       _slideController.forward();
-      
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -153,10 +153,10 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
                       slivers: [
                         // カスタムAppBar
                         _buildCustomAppBar(),
-                        
+
                         // 統計カード
                         _buildStatisticsCard(),
-                        
+
                         // アニメリスト
                         _animeList.isEmpty
                             ? SliverFillRemaining(
@@ -419,7 +419,8 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+      String label, String value, IconData icon, Color color) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -460,14 +461,14 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
 
   String _getLatestYear() {
     if (_animeList.isEmpty) return '-';
-    
+
     final years = _animeList
         .map((anime) => int.tryParse(anime['firstyear'].toString()) ?? 0)
         .where((year) => year > 0)
         .toList();
-    
+
     if (years.isEmpty) return '-';
-    
+
     years.sort();
     return years.last.toString();
   }
@@ -547,9 +548,9 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
                             size: 28,
                           ),
                         ),
-                        
+
                         SizedBox(width: 16),
-                        
+
                         // アニメ情報
                         Expanded(
                           child: Column(
@@ -566,13 +567,12 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              
                               SizedBox(height: 8),
-                              
                               Row(
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: Color(0xFF48BB78).withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
@@ -599,7 +599,6 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
                                   ),
                                 ],
                               ),
-                              
                               if (comment.isNotEmpty) ...[
                                 SizedBox(height: 8),
                                 Text(
@@ -616,7 +615,7 @@ class _WatchListPageState extends State<WatchListPage> with TickerProviderStateM
                             ],
                           ),
                         ),
-                        
+
                         // 矢印アイコン
                         Container(
                           padding: EdgeInsets.all(8),

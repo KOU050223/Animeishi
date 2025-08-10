@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class AnimeNotification {
   static OverlayEntry? _currentOverlay;
 
-  static void showSuccess(BuildContext context, String message, {String? subtitle}) {
+  static void showSuccess(BuildContext context, String message,
+      {String? subtitle}) {
     _showNotification(
       context,
       message: message,
@@ -17,7 +18,8 @@ class AnimeNotification {
     );
   }
 
-  static void showError(BuildContext context, String message, {String? subtitle}) {
+  static void showError(BuildContext context, String message,
+      {String? subtitle}) {
     _showNotification(
       context,
       message: message,
@@ -31,7 +33,8 @@ class AnimeNotification {
     );
   }
 
-  static void showInfo(BuildContext context, String message, {String? subtitle}) {
+  static void showInfo(BuildContext context, String message,
+      {String? subtitle}) {
     _showNotification(
       context,
       message: message,
@@ -345,4 +348,4 @@ class _NotificationWidgetState extends State<_NotificationWidget>
       ),
     );
   }
-} 
+}

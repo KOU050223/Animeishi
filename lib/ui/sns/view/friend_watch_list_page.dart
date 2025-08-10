@@ -19,7 +19,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
     with TickerProviderStateMixin {
   bool _isLoading = true;
   List<Map<String, dynamic>> _animeList = [];
-  Set<String> _selectedAnime = {}; 
+  Set<String> _selectedAnime = {};
   SortOrder _sortOrder = SortOrder.descending;
   String _userName = '';
 
@@ -33,12 +33,12 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
   void initState() {
     super.initState();
     _userName = widget.userName ?? 'フレンド';
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -48,7 +48,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
       duration: const Duration(seconds: 12),
       vsync: this,
     )..repeat();
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -56,7 +56,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
       parent: _fadeController,
       curve: Curves.easeOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -114,15 +114,17 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
           .where(FieldPath.documentId, whereIn: _selectedAnime.toList())
           .get();
 
-      _animeList = snapshot.docs.map((doc) => {
-        'id': doc.id,
-        'tid': doc['TID'].toString(),
-        'title': doc['Title'],
-        'titleyomi': doc['TitleYomi'],
-        'firstmonth': doc['FirstMonth'],
-        'firstyear': doc['FirstYear'],
-        'comment': doc['Comment'],
-      }).toList();
+      _animeList = snapshot.docs
+          .map((doc) => {
+                'id': doc.id,
+                'tid': doc['TID'].toString(),
+                'title': doc['Title'],
+                'titleyomi': doc['TitleYomi'],
+                'firstmonth': doc['FirstMonth'],
+                'firstyear': doc['FirstYear'],
+                'comment': doc['Comment'],
+              })
+          .toList();
 
       _sortAnimeList();
     } catch (e) {
@@ -189,7 +191,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                 );
               },
             ),
-            
+
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeAnimation,
@@ -197,7 +199,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                   children: [
                     // モダンなヘッダー
                     _buildModernHeader(context),
-                    
+
                     // メインコンテンツ
                     Expanded(
                       child: _isLoading
@@ -266,12 +268,13 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                   ),
                 ),
               ),
-              
+
               // タイトル部分
               Expanded(
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(25),
@@ -318,7 +321,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                   ),
                 ),
               ),
-              
+
               // ソートボタン
               Container(
                 width: 48,
@@ -355,9 +358,9 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // フレンド情報カード
           Container(
             width: double.infinity,
@@ -427,7 +430,8 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -487,7 +491,8 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                 width: 60,
                 height: 60,
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF667EEA)),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(const Color(0xFF667EEA)),
                   strokeWidth: 3,
                 ),
               ),
@@ -610,7 +615,8 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           WatchAnimePage(anime: anime),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
                         return SlideTransition(
                           position: Tween<Offset>(
                             begin: const Offset(1.0, 0.0),
@@ -649,9 +655,9 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                           size: 24,
                         ),
                       ),
-                      
+
                       const SizedBox(width: 16),
-                      
+
                       // アニメ情報
                       Expanded(
                         child: Column(
@@ -671,9 +677,11 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF667EEA).withOpacity(0.1),
+                                    color: const Color(0xFF667EEA)
+                                        .withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -687,9 +695,11 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF764BA2).withOpacity(0.1),
+                                    color: const Color(0xFF764BA2)
+                                        .withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -706,7 +716,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                           ],
                         ),
                       ),
-                      
+
                       // 矢印アイコン
                       Container(
                         padding: const EdgeInsets.all(8),
@@ -734,25 +744,25 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
 
 class FriendParticlePainter extends CustomPainter {
   final double animationValue;
-  
+
   FriendParticlePainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     final random = math.Random(42);
-    
+
     for (int i = 0; i < 20; i++) {
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height;
       final offset = (animationValue * 2 * math.pi + i) % (2 * math.pi);
-      
+
       final animatedX = x + math.sin(offset + i) * 12;
       final animatedY = y + math.cos(offset + i) * 12;
-      
+
       final opacity = (math.sin(animationValue * 3 * math.pi + i) + 1) / 2;
       final radius = 1 + math.sin(animationValue * 4 * math.pi + i) * 1.5;
-      
+
       paint.color = [
         const Color(0xFFE8D5FF).withOpacity(opacity * 0.6),
         const Color(0xFFB8E6FF).withOpacity(opacity * 0.6),
@@ -760,7 +770,7 @@ class FriendParticlePainter extends CustomPainter {
         const Color(0xFFE8FFD6).withOpacity(opacity * 0.6),
         const Color(0xFF667EEA).withOpacity(opacity * 0.4),
       ][i % 5];
-      
+
       canvas.drawCircle(
         Offset(animatedX, animatedY),
         radius,

@@ -91,4 +91,4 @@ class AuthAnimationController {
       painter: AnimationPainter(particles),
     );
   }
-} 
+}

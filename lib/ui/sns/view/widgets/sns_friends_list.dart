@@ -179,7 +179,8 @@ class FriendCard extends StatelessWidget {
                 runSpacing: 8,
                 children: genres.take(3).map((genre) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -200,8 +201,8 @@ class FriendCard extends StatelessWidget {
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
-                      ), 
-                    );
+                    ),
+                  );
                 }).toList(),
               ),
               const SizedBox(height: 16),
@@ -259,7 +260,8 @@ class FriendCard extends StatelessWidget {
                           userId: friendId,
                           userName: friendName,
                         ),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
                           return SlideTransition(
                             position: Tween<Offset>(
                               begin: const Offset(1.0, 0.0),

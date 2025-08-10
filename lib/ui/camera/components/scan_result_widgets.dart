@@ -3,9 +3,9 @@ import '../services/scan_data_service.dart';
 
 /// スキャン結果の状態別UI構築クラス
 class ScanResultWidgets {
-  
   /// エラー状態のウィジェットを構築
-  static Widget buildErrorState(ScanDataErrorType errorType, {String? message}) {
+  static Widget buildErrorState(ScanDataErrorType errorType,
+      {String? message}) {
     String title = 'エラーが発生しました';
     String description = 'もう一度お試しください';
     IconData icon = Icons.error_outline;
@@ -300,7 +300,6 @@ class ScanResultWidgets {
                 ),
               ],
             ),
-            
             if (userProfile.bio.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
@@ -324,7 +323,6 @@ class ScanResultWidgets {
                 ),
               ),
             ],
-
             if (userProfile.favoriteQuote.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
@@ -361,7 +359,6 @@ class ScanResultWidgets {
                 ),
               ),
             ],
-            
             if (userProfile.selectedGenres.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
@@ -457,9 +454,7 @@ class ScanResultWidgets {
                 ),
               ],
             ),
-            
             const SizedBox(height: 16),
-            
             if (animeList.isEmpty)
               _buildEmptyAnimeList()
             else
@@ -504,9 +499,10 @@ class ScanResultWidgets {
   }
 
   /// アニメリスト項目を構築
-  static List<Widget> _buildAnimeListItems(List<Map<String, dynamic>> animeList) {
+  static List<Widget> _buildAnimeListItems(
+      List<Map<String, dynamic>> animeList) {
     List<Widget> widgets = [];
-    
+
     // 最初の10件を表示
     widgets.addAll(
       animeList.take(10).map((anime) {
@@ -538,9 +534,7 @@ class ScanResultWidgets {
                   size: 20,
                 ),
               ),
-              
               const SizedBox(width: 12),
-              
               Expanded(
                 child: Text(
                   anime['title'] ?? 'タイトル不明',
@@ -558,7 +552,7 @@ class ScanResultWidgets {
         );
       }).toList(),
     );
-    
+
     // 10件以上ある場合の表示
     if (animeList.length > 10) {
       widgets.add(
@@ -585,7 +579,7 @@ class ScanResultWidgets {
         ),
       );
     }
-    
+
     return widgets;
   }
-} 
+}

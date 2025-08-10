@@ -14,10 +14,10 @@ void main() {
 
       // 初期状態でホームタブが選択されていることを確認
       expect(find.text('ホーム'), findsOneWidget);
-      
+
       // BottomNavigationBarが存在することを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // 5つのタブが存在することを確認
       expect(find.byType(BottomNavigationBarItem), findsNWidgets(5));
     });
@@ -53,7 +53,7 @@ void main() {
 
       // PageViewが存在することを確認
       expect(find.byType(PageView), findsOneWidget);
-      
+
       // Scaffoldが存在することを確認
       expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
     });
@@ -66,9 +66,8 @@ void main() {
       );
 
       // 初期状態（ホームタブが選択）
-      final bottomNavBar = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar)
-      );
+      final bottomNavBar =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(bottomNavBar.currentIndex, 0);
 
       // アニメタブをタップ
@@ -91,10 +90,10 @@ void main() {
 
       // AppBarのタイトルを確認
       expect(find.text('アニ名刺'), findsOneWidget);
-      
+
       // AppBarが存在することを確認
       expect(find.byType(AppBar), findsOneWidget);
-      
+
       // HomePageContentが存在することを確認
       expect(find.byType(HomePageContent), findsOneWidget);
     });
@@ -108,7 +107,7 @@ void main() {
 
       // AppBarのタイトルを確認
       expect(find.text('QRコードスキャン'), findsOneWidget);
-      
+
       // AppBarが存在することを確認
       expect(find.byType(AppBar), findsOneWidget);
     });
@@ -124,11 +123,10 @@ void main() {
 
       // BottomNavigationBarの存在を確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // セマンティクス情報の基本的な存在確認
-      final bottomNavBarWidget = tester.widget<BottomNavigationBar>(
-        find.byType(BottomNavigationBar)
-      );
+      final bottomNavBarWidget =
+          tester.widget<BottomNavigationBar>(find.byType(BottomNavigationBar));
       expect(bottomNavBarWidget.items.length, 5);
     });
 
@@ -141,7 +139,8 @@ void main() {
 
       // BottomNavigationBarのタッチターゲットが適切なサイズであることを確認
       final bottomNavBar = tester.getSize(find.byType(BottomNavigationBar));
-      expect(bottomNavBar.height, greaterThanOrEqualTo(56.0)); // Material Design minimum
+      expect(bottomNavBar.height,
+          greaterThanOrEqualTo(56.0)); // Material Design minimum
     });
   });
 
@@ -149,7 +148,7 @@ void main() {
     testWidgets('小さい画面でのレイアウト', (WidgetTester tester) async {
       // 小さい画面サイズを設定
       tester.view.physicalSize = const Size(320, 568);
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: const HomePage(),
@@ -158,10 +157,10 @@ void main() {
 
       // BottomNavigationBarが存在することを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // PageViewが存在することを確認
       expect(find.byType(PageView), findsOneWidget);
-      
+
       // 画面サイズをリセット
       tester.view.reset();
     });
@@ -169,7 +168,7 @@ void main() {
     testWidgets('大きい画面でのレイアウト', (WidgetTester tester) async {
       // 大きい画面サイズを設定
       tester.view.physicalSize = const Size(1024, 768);
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: const HomePage(),
@@ -178,10 +177,10 @@ void main() {
 
       // BottomNavigationBarが存在することを確認
       expect(find.byType(BottomNavigationBar), findsOneWidget);
-      
+
       // PageViewが存在することを確認
       expect(find.byType(PageView), findsOneWidget);
-      
+
       // 画面サイズをリセット
       tester.view.reset();
     });

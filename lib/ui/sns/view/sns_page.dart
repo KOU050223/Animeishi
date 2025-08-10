@@ -218,8 +218,11 @@ class _SNSPageState extends State<SNSPage> with TickerProviderStateMixin {
                         Navigator.pushReplacement(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    HomePage(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
                               return SlideTransition(
                                 position: Tween<Offset>(
                                   begin: const Offset(-1.0, 0.0),

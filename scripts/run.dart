@@ -60,18 +60,18 @@ Flutter開発用スクリプトランナー
 
 Future<void> runCI(List<String> extraArgs) async {
   print('🚀 CI チェックを開始...');
-  
+
   await runCommand('flutter', ['pub', 'get']);
-  
+
   print('🎨 フォーマットチェック...');
   await runCommand('dart', ['format', '--set-exit-if-changed', '.']);
-  
+
   print('🔍 静的解析...');
   await runCommand('flutter', ['analyze', '--fatal-infos']);
-  
+
   print('🧪 テスト実行...');
   await runCommand('flutter', ['test', ...extraArgs]);
-  
+
   print('✅ すべてのチェックが完了しました!');
 }
 
@@ -112,15 +112,15 @@ Future<void> runClean(List<String> extraArgs) async {
 
 Future<void> runCommand(String command, List<String> arguments) async {
   final result = await Process.run(command, arguments);
-  
+
   if (result.stdout.isNotEmpty) {
     print(result.stdout);
   }
-  
+
   if (result.stderr.isNotEmpty) {
     stderr.write(result.stderr);
   }
-  
+
   if (result.exitCode != 0) {
     exit(result.exitCode);
   }

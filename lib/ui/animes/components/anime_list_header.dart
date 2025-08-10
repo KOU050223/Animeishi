@@ -234,7 +234,9 @@ class _AnimeListHeaderState extends State<AnimeListHeader> {
                 child: Padding(
                   padding: EdgeInsets.all(8),
                   child: Icon(
-                    widget.viewModel.isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                    widget.viewModel.isAscending
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -287,7 +289,8 @@ class _AnimeListHeaderState extends State<AnimeListHeader> {
                 ),
                 SizedBox(width: 12),
               ] else ...[
-                Icon(Icons.cloud_download_outlined, color: Colors.white, size: 20),
+                Icon(Icons.cloud_download_outlined,
+                    color: Colors.white, size: 20),
                 SizedBox(width: 12),
               ],
               Text(
@@ -307,7 +310,7 @@ class _AnimeListHeaderState extends State<AnimeListHeader> {
 
   Widget _buildActionButtons() {
     final hasSelected = widget.viewModel.selectedAnime.isNotEmpty;
-    
+
     return Container(
       width: double.infinity,
       height: 50,

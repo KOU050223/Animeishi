@@ -19,7 +19,7 @@ class ProfileImageService {
         maxHeight: 1024,
         imageQuality: 80,
       );
-      
+
       if (image != null) {
         if (kIsWeb) {
           // Web用の処理
@@ -82,7 +82,8 @@ class ProfileImageService {
   }
 
   /// 画像選択のダイアログを表示する
-  static void showImageSourceDialog(BuildContext context, Function(ImageSource) onSourceSelected) {
+  static void showImageSourceDialog(
+      BuildContext context, Function(ImageSource) onSourceSelected) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -181,7 +182,8 @@ class ProfileImageService {
   }
 
   /// Web環境でのエラーダイアログを表示する
-  static void showWebImagePickerDialog(BuildContext context, VoidCallback onRetry) {
+  static void showWebImagePickerDialog(
+      BuildContext context, VoidCallback onRetry) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -240,4 +242,4 @@ class ProfileImageResult {
     required this.success,
     this.errorMessage,
   });
-} 
+}
