@@ -1,6 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:animeishi/config/feature_flags.dart';
 
 void AnimeListFactory() async {
+  // テストデータ作成機能が無効な場合は処理を中断
+  if (!FeatureFlags.enableTestDataCreation) {
+    if (FeatureFlags.enableDebugLogs) {
+      print('テストデータ作成機能は本番環境では無効です');
+    }
+    return;
+  }
   // Initialize Firestore
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -192,11 +200,15 @@ void AnimeListFactory() async {
     }
   ];
 
-  print('Adding data to Firestore...');
+  if (FeatureFlags.enableDebugLogs) {
+    print('Adding data to Firestore...');
+  }
   // Add data to Firestore
   for (var anime in animeList) {
     await firestore.collection('titles').doc(anime['TID']).set(anime);
   }
 
-  print('Data added to Firestore successfully.');
+  if (FeatureFlags.enableDebugLogs) {
+    print('Data added to Firestore successfully.');
+  }
 }
