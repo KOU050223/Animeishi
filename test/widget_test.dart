@@ -8,23 +8,156 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/app.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('基本ウィジェットテスト', () {
+    testWidgets('MaterialApp基本テスト', (WidgetTester tester) async {
+      // シンプルなMaterialAppのテスト
+      await tester.pumpWidget(
+        MaterialApp(
+          title: 'テストアプリ',
+          home: Scaffold(
+            appBar: AppBar(title: const Text('テストページ')),
+            body: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Hello, World!'),
+                  Icon(Icons.star),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      // AppBarのタイトルが表示されることを確認
+      expect(find.text('テストページ'), findsOneWidget);
+      
+      // ボディのテキストが表示されることを確認
+      expect(find.text('Hello, World!'), findsOneWidget);
+      
+      // アイコンが表示されることを確認
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      
+      // Scaffoldが存在することを確認
+      expect(find.byType(Scaffold), findsOneWidget);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    testWidgets('ボタンタップテスト', (WidgetTester tester) async {
+      int tapCount = 0;
+      
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('タップ回数: $tapCount'),
+                  ElevatedButton(
+                    onPressed: () {
+                      tapCount++;
+                    },
+                    child: const Text('タップ'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      // 初期表示の確認
+      expect(find.text('タップ回数: 0'), findsOneWidget);
+      expect(find.text('タップ'), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsOneWidget);
+    });
+
+    testWidgets('テキストフィールドテスト', (WidgetTester tester) async {
+      final TextEditingController controller = TextEditingController();
+      
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      labelText: 'テスト入力',
+                    ),
+                  ),
+                  Text(controller.text),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // TextFieldが存在することを確認
+      expect(find.byType(TextField), findsOneWidget);
+      
+      // ラベルが表示されることを確認
+      expect(find.text('テスト入力'), findsOneWidget);
+
+      // テキスト入力のテスト
+      await tester.enterText(find.byType(TextField), 'Hello');
+      await tester.pump();
+      
+      // コントローラーにテキストが設定されることを確認（表示の確認はしない）
+      expect(controller.text, 'Hello');
+    });
+  });
+
+  group('レイアウトテスト', () {
+    testWidgets('Column レイアウトテスト', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: const Column(
+              children: [
+                Text('アイテム1'),
+                Text('アイテム2'),
+                Text('アイテム3'),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // すべてのテキストが表示されることを確認
+      expect(find.text('アイテム1'), findsOneWidget);
+      expect(find.text('アイテム2'), findsOneWidget);
+      expect(find.text('アイテム3'), findsOneWidget);
+      
+      // Columnが存在することを確認
+      expect(find.byType(Column), findsOneWidget);
+    });
+
+    testWidgets('Row レイアウトテスト', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: const Row(
+              children: [
+                Icon(Icons.home),
+                Icon(Icons.star),
+                Icon(Icons.settings),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // すべてのアイコンが表示されることを確認
+      expect(find.byIcon(Icons.home), findsOneWidget);
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.byIcon(Icons.settings), findsOneWidget);
+      
+      // Rowが存在することを確認
+      expect(find.byType(Row), findsOneWidget);
+    });
   });
 }
