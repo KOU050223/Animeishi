@@ -1,0 +1,58 @@
+name: Code Quality Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quality-check:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    continue-on-error: true  # 品質チェックは失敗してもPRをブロックしない
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          cache: true
+          
+      - name: Get dependencies
+        run: flutter pub get
+        
+      - name: Run analysis with detailed output
+        run: |
+          echo "Running Flutter analysis..."
+          flutter analyze > analysis_output.txt 2>&1 || true
+          
+          echo "## Code Analysis Summary" >> $GITHUB_STEP_SUMMARY
+          
+          # Count different types of issues
+          ERRORS=$(grep -c "^  error •" analysis_output.txt || echo "0")
+          WARNINGS=$(grep -c "^warning •" analysis_output.txt || echo "0")
+          INFOS=$(grep -c "^   info •" analysis_output.txt || echo "0")
+          
+          echo "- ❌ Errors: $ERRORS" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚠️ Warnings: $WARNINGS" >> $GITHUB_STEP_SUMMARY
+          echo "- ℹ️ Info: $INFOS" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $ERRORS -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ Critical errors found:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            grep "^  error •" analysis_output.txt | head -10 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Upload full analysis results
+          cat analysis_output.txt
+        
+      - name: Upload analysis results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: analysis-results
+          path: analysis_output.txt

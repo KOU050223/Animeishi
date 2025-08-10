@@ -1,0 +1,30 @@
+name: Format Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  format-check:
+    name: Check Code Formatting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          cache: true
+          
+      - name: Check formatting
+        run: |
+          if ! dart format --set-exit-if-changed .; then
+            echo "❌ Code is not properly formatted!"
+            echo "Please run 'dart format .' to fix formatting issues"
+            exit 1
+          else
+            echo "✅ Code formatting is correct"
+          fi
