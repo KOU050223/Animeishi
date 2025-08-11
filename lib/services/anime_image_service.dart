@@ -18,6 +18,7 @@ class AnimeImageService {
   static const Duration requestTimeout = Duration(seconds: 8); // ネイティブ版タイムアウト
   static const Duration webRequestTimeout = Duration(seconds: 5); // Web版タイムアウト
   static const Duration batchDelay = Duration(milliseconds: 200); // バッチ間待機時間
+
   // Web版でCORS問題を回避するためのプロキシURL（フォールバック付き）
   static const List<String> corsProxyUrls = [
     'https://api.allorigins.win/get?url=',
