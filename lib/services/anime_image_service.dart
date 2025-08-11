@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
@@ -12,6 +13,11 @@ class AnimeImageService {
   static const Duration cacheExpiration = Duration(hours: 24); // 24時間キャッシュ
   static const int maxConcurrentRequests = 3; // 同時リクエスト数制限
   static int _activeRequestCount = 0;
+
+  // タイムアウト設定
+  static const Duration requestTimeout = Duration(seconds: 8); // ネイティブ版タイムアウト
+  static const Duration webRequestTimeout = Duration(seconds: 5); // Web版タイムアウト
+  static const Duration batchDelay = Duration(milliseconds: 200); // バッチ間待機時間
 
   // Web版でCORS問題を回避するためのプロキシURL（フォールバック付き）
   static const List<String> corsProxyUrls = [
@@ -92,7 +98,7 @@ class AnimeImageService {
           'Accept': 'application/json',
           'User-Agent': 'AnimeishiApp/1.0',
         },
-      ).timeout(Duration(seconds: 8));
+      ).timeout(requestTimeout);
 
       return _parseResponse(response, tid);
     } catch (e) {
@@ -116,7 +122,7 @@ class AnimeImageService {
             'Accept': 'application/json',
             'User-Agent': 'AnimeishiApp/1.0',
           },
-        ).timeout(Duration(seconds: 5)); // より短いタイムアウト
+        ).timeout(webRequestTimeout); // より短いタイムアウト
 
         final result = _parseResponse(response, tid, isWeb: true);
         if (result != null) {
@@ -165,11 +171,17 @@ class AnimeImageService {
           return imageUrl;
         }
       } else {
-        print(
-            'HTTP error for TID $tid: ${response.statusCode} - ${response.body}');
+        developer.log(
+          'HTTP error for TID $tid: ${response.statusCode} - ${response.body}',
+          name: 'AnimeImageService._parseResponse',
+        );
       }
     } catch (e) {
-      print('Error parsing response for TID $tid: $e');
+      developer.log(
+        'Error parsing response for TID $tid: $e',
+        name: 'AnimeImageService._parseResponse',
+        error: e,
+      );
     }
 
     return null;
@@ -211,7 +223,7 @@ class AnimeImageService {
 
       // バッチ間で少し待機（API負荷軽減）
       if (i + batchSize < uncachedTids.length) {
-        await Future.delayed(Duration(milliseconds: 200));
+        await Future.delayed(batchDelay);
       }
     }
 
