@@ -40,19 +40,19 @@ class AnimeDetailWidgets {
         children: [
           // アニメアイコンとお気に入りバッジ
           _buildAnimeIconWithFavoriteBadge(isFavorite, favoriteAnimationWidget),
-          
+
           const SizedBox(height: 20),
-          
+
           // タイトル
           _buildAnimeTitle(anime['title']),
-          
+
           const SizedBox(height: 12),
-          
+
           // 読み仮名
           _buildAnimeTitleYomi(anime['titleyomi']),
-          
+
           const SizedBox(height: 16),
-          
+
           // お気に入りボタン
           _buildFavoriteButton(
             isFavorite: isFavorite,
@@ -99,14 +99,14 @@ class AnimeDetailWidgets {
         children: [
           // セクションヘッダー
           _buildSectionHeader('詳細情報', Icons.info_outline),
-          
+
           const SizedBox(height: 20),
-          
+
           // 基本情報
           _buildBasicInfo(anime),
-          
+
           const SizedBox(height: 24),
-          
+
           // コメント詳細
           _buildCommentSection(anime['comment']),
         ],
@@ -115,7 +115,8 @@ class AnimeDetailWidgets {
   }
 
   /// アニメアイコンとお気に入りバッジの構築
-  static Widget _buildAnimeIconWithFavoriteBadge(bool isFavorite, Widget? favoriteAnimationWidget) {
+  static Widget _buildAnimeIconWithFavoriteBadge(
+      bool isFavorite, Widget? favoriteAnimationWidget) {
     return Stack(
       children: [
         Container(
@@ -140,7 +141,7 @@ class AnimeDetailWidgets {
             size: 50,
           ),
         ),
-        
+
         // お気に入りバッジ
         if (isFavorite && favoriteAnimationWidget != null)
           Positioned(
@@ -214,11 +215,12 @@ class AnimeDetailWidgets {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : favoriteAnimationWidget ?? Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: Colors.white,
-                size: 20,
-              ),
+            : favoriteAnimationWidget ??
+                Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.white,
+                  size: 20,
+                ),
         label: Text(
           isFavorite ? 'お気に入り登録済み' : 'お気に入りに追加',
           style: const TextStyle(
@@ -235,7 +237,8 @@ class AnimeDetailWidgets {
             borderRadius: BorderRadius.circular(15),
           ),
           elevation: 5,
-          shadowColor: (isFavorite ? Colors.pink : Colors.grey).withOpacity(0.3),
+          shadowColor:
+              (isFavorite ? Colors.pink : Colors.grey).withOpacity(0.3),
         ),
       ),
     );
@@ -341,7 +344,7 @@ class AnimeDetailWidgets {
     }
 
     final sections = CommentParserService.parseComment(comment);
-    
+
     if (sections.isEmpty) {
       return _buildEmptyCommentState();
     }
@@ -409,4 +412,4 @@ class AnimeDetailWidgets {
       ),
     );
   }
-} 
+}

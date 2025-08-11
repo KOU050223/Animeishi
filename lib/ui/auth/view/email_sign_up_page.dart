@@ -15,7 +15,8 @@ class EmailSignUpPage extends StatefulWidget {
   _EmailSignUpState createState() => _EmailSignUpState();
 }
 
-class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateMixin {
+class _EmailSignUpState extends State<EmailSignUpPage>
+    with TickerProviderStateMixin {
   // フォーム関連
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -28,7 +29,7 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   // パーティクルアニメーション用
   late Timer timer;
   late List<Particle> particles;
@@ -36,10 +37,10 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    
+
     // パーティクル初期化
     particles = List<Particle>.generate(40, (index) => Particle());
-    
+
     // パーティクルアニメーション
     const duration = Duration(milliseconds: 1000 ~/ 60);
     timer = Timer.periodic(duration, (timer) {
@@ -51,7 +52,7 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
         });
       }
     });
-    
+
     // フェードインアニメーション
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -96,23 +97,20 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
   Future<void> createUserDocument(String userId) async {
     try {
       print('ユーザードキュメント作成開始: $userId');
-      
+
       // まず基本的なユーザードキュメントを作成
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .set({
-            'createdAt': FieldValue.serverTimestamp(),
-            'email': emailController.text.trim(),
-            'uid': userId,
-          });
-      
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'createdAt': FieldValue.serverTimestamp(),
+        'email': emailController.text.trim(),
+        'uid': userId,
+      });
+
       print('基本ユーザードキュメントを作成しました');
-      
+
       // Note: サブコレクション（selectedAnime, meishies, favorites）は
       // 実際にデータが追加されるときに自動的に作成されるため、
       // 初期化時にプレースホルダードキュメントを作成する必要はありません。
-      
+
       print('ユーザードキュメントの作成が完了しました');
     } catch (e) {
       print('ユーザードキュメントの作成中にエラーが発生しました: $e');
@@ -124,7 +122,8 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
   String? _validateEmail() {
     if (emailController.text.isEmpty) {
       return 'メールアドレスを入力してください';
-    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
+    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+        .hasMatch(emailController.text)) {
       return '正しいメールアドレスを入力してください';
     }
     return null;
@@ -142,7 +141,7 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
   Future<void> _signUp() async {
     final emailError = _validateEmail();
     final passwordError = _validatePassword();
-    
+
     if (emailError != null || passwordError != null) {
       _showStylishValidationDialog(emailError, passwordError);
       return;
@@ -156,20 +155,20 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
     try {
       final User? user = (await FirebaseAuth.instance
               .createUserWithEmailAndPassword(
-                  email: emailController.text.trim(), 
+                  email: emailController.text.trim(),
                   password: passwordController.text))
           .user;
-      
+
       if (user != null) {
         print("ユーザ登録しました ${user.email} , ${user.uid}");
         await createUserDocument(user.uid);
-        
+
         // 成功フィードバック
         _showSuccessMessage();
-        
+
         // 少し遅延してから画面遷移
         await Future.delayed(Duration(milliseconds: 1500));
-        
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -180,11 +179,11 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
     } catch (e) {
       print('新規登録エラー: $e');
       print('エラータイプ: ${e.runtimeType}');
-      
+
       setState(() {
         errorMessage = _getErrorMessage(e.toString());
       });
-      
+
       // エラーダイアログを表示
       _showErrorDialog(errorMessage);
     } finally {
@@ -252,9 +251,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                     size: 40,
                   ),
                 ),
-                
+
                 SizedBox(height: 20),
-                
+
                 // タイトル
                 Text(
                   '入力内容をご確認ください',
@@ -264,9 +263,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                     color: Color(0xFF2D3748),
                   ),
                 ),
-                
+
                 SizedBox(height: 16),
-                
+
                 // エラーメッセージリスト
                 if (emailError != null || passwordError != null) ...[
                   Container(
@@ -331,9 +330,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                     ),
                   ),
                 ],
-                
+
                 SizedBox(height: 24),
-                
+
                 // 閉じるボタン
                 Container(
                   width: double.infinity,
@@ -455,9 +454,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                     size: 40,
                   ),
                 ),
-                
+
                 SizedBox(height: 20),
-                
+
                 // タイトル
                 Text(
                   '登録エラー',
@@ -467,9 +466,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                     color: Color(0xFF2D3748),
                   ),
                 ),
-                
+
                 SizedBox(height: 16),
-                
+
                 // エラーメッセージ
                 Container(
                   padding: EdgeInsets.all(16),
@@ -491,9 +490,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                     textAlign: TextAlign.center,
                   ),
                 ),
-                
+
                 SizedBox(height: 24),
-                
+
                 // 閉じるボタン
                 Container(
                   width: double.infinity,
@@ -555,29 +554,32 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.height < 700;
-    
+
     return Scaffold(
       body: Stack(
         children: [
           // 背景グラデーション
           AuthWidgets.buildBackgroundGradient(),
-          
+
           // パーティクルアニメーション
           CustomPaint(
             size: size,
             painter: AnimationPainter(particles),
           ),
-          
+
           // メインコンテンツ
           SafeArea(
             child: SingleChildScrollView(
               physics: BouncingScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                  minHeight: size.height -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 32.0, vertical: 40.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -585,7 +587,7 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                       AuthWidgets.buildBackButton(
                         onPressed: () => Navigator.pop(context),
                       ),
-                      
+
                       // タイトル部分
                       FadeTransition(
                         opacity: _fadeAnimation,
@@ -603,9 +605,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                           ),
                         ),
                       ),
-                      
+
                       SizedBox(height: isSmallScreen ? 40 : 60),
-                      
+
                       // フォーム部分
                       FadeTransition(
                         opacity: _fadeAnimation,
@@ -618,9 +620,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                               icon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
                             ),
-                            
+
                             SizedBox(height: 20),
-                            
+
                             // パスワード入力
                             _buildModernTextField(
                               controller: passwordController,
@@ -629,7 +631,9 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                               obscureText: hidePassword,
                               suffixIcon: IconButton(
                                 icon: Icon(
-                                  hidePassword ? Icons.visibility_off : Icons.visibility,
+                                  hidePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: Color(0xFF718096),
                                 ),
                                 onPressed: () {
@@ -639,15 +643,15 @@ class _EmailSignUpState extends State<EmailSignUpPage> with TickerProviderStateM
                                 },
                               ),
                             ),
-                            
+
                             SizedBox(height: 32),
-                            
+
                             // 登録ボタン
                             _buildSignUpButton(),
                           ],
                         ),
                       ),
-                      
+
                       SizedBox(height: 40),
                     ],
                   ),
@@ -831,17 +835,20 @@ class AnimationPainter extends CustomPainter {
 class Particle {
   final Color color = _getRandomColor();
   final double radius = _getRandomVal(2, 5);
-  
+
   double dx = _getRandomVal(-0.2, 0.2);
   double dy = _getRandomVal(-0.2, 0.2);
-  
+
   late double x = _getRandomVal(0, 1000);
   late double y = _getRandomVal(0, 800);
   late Offset pos = Offset(x, y);
 
   void moveParticle() {
     Offset nextPos = pos + Offset(dx, dy);
-    if (nextPos.dx < 0 || nextPos.dx > 1000 || nextPos.dy < 0 || nextPos.dy > 800) {
+    if (nextPos.dx < 0 ||
+        nextPos.dx > 1000 ||
+        nextPos.dy < 0 ||
+        nextPos.dy > 800) {
       dx = -dx;
       dy = -dy;
       nextPos = pos + Offset(dx, dy);

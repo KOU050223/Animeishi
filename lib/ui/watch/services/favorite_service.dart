@@ -18,7 +18,7 @@ class FavoriteService {
           .collection('favorites')
           .doc(tid)
           .get();
-      
+
       return doc.exists;
     } catch (e) {
       print('Error checking favorite status: $e');
@@ -27,7 +27,8 @@ class FavoriteService {
   }
 
   /// お気に入りに追加する
-  static Future<FavoriteResult> addToFavorites(Map<String, dynamic> anime) async {
+  static Future<FavoriteResult> addToFavorites(
+      Map<String, dynamic> anime) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return FavoriteResult(
@@ -149,14 +150,14 @@ class FavoriteService {
   }
 
   /// お気に入り結果を表示する
-  static void showFavoriteSnackBar(BuildContext context, FavoriteResult result) {
+  static void showFavoriteSnackBar(
+      BuildContext context, FavoriteResult result) {
     Color backgroundColor;
     IconData icon;
 
     if (result.success) {
-      backgroundColor = result.isFavorite 
-          ? Colors.pink[400]! 
-          : Colors.grey[600]!;
+      backgroundColor =
+          result.isFavorite ? Colors.pink[400]! : Colors.grey[600]!;
       icon = result.isFavorite ? Icons.favorite : Icons.favorite_border;
     } else {
       backgroundColor = Colors.red[400]!;
@@ -194,4 +195,4 @@ class FavoriteResult {
     required this.message,
     this.isFavorite = false,
   });
-} 
+}

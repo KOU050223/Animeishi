@@ -60,9 +60,7 @@ class EmailLoginDialogs {
                     size: 40,
                   ),
                 ),
-                
                 SizedBox(height: 20),
-                
                 Text(
                   '入力内容をご確認ください',
                   style: TextStyle(
@@ -71,9 +69,7 @@ class EmailLoginDialogs {
                     color: Color(0xFF2D3748),
                   ),
                 ),
-                
                 SizedBox(height: 16),
-                
                 if (emailError != null || passwordError != null) ...[
                   Container(
                     padding: EdgeInsets.all(16),
@@ -137,9 +133,7 @@ class EmailLoginDialogs {
                     ),
                   ),
                 ],
-                
                 SizedBox(height: 24),
-                
                 Container(
                   width: double.infinity,
                   height: 48,
@@ -259,9 +253,7 @@ class EmailLoginDialogs {
                     size: 40,
                   ),
                 ),
-                
                 SizedBox(height: 20),
-                
                 Text(
                   'エラーが発生しました',
                   style: TextStyle(
@@ -270,9 +262,7 @@ class EmailLoginDialogs {
                     color: Color(0xFF2D3748),
                   ),
                 ),
-                
                 SizedBox(height: 12),
-                
                 Text(
                   error,
                   style: TextStyle(
@@ -282,9 +272,7 @@ class EmailLoginDialogs {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
                 SizedBox(height: 24),
-                
                 Container(
                   width: double.infinity,
                   height: 48,
@@ -391,9 +379,7 @@ class EmailLoginDialogs {
                     size: 40,
                   ),
                 ),
-                
                 SizedBox(height: 20),
-                
                 Text(
                   title,
                   style: TextStyle(
@@ -402,9 +388,7 @@ class EmailLoginDialogs {
                     color: Color(0xFF2D3748),
                   ),
                 ),
-                
                 SizedBox(height: 12),
-                
                 Text(
                   message,
                   style: TextStyle(
@@ -414,9 +398,7 @@ class EmailLoginDialogs {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
                 SizedBox(height: 24),
-                
                 Container(
                   width: double.infinity,
                   height: 48,
@@ -461,4 +443,4 @@ class EmailLoginDialogs {
       },
     );
   }
-} 
+}

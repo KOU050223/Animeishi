@@ -10,10 +10,10 @@ class CommentParserService {
 
     final sections = <CommentSection>[];
     final lines = comment.split('\n');
-    
+
     String currentSectionTitle = '';
     List<String> currentContent = [];
-    
+
     for (String line in lines) {
       if (line.startsWith('*')) {
         // 新しいセクションの開始
@@ -29,7 +29,7 @@ class CommentParserService {
         currentContent.add(line);
       }
     }
-    
+
     // 最後のセクションを追加
     if (currentSectionTitle.isNotEmpty) {
       sections.add(CommentSection(
@@ -37,7 +37,7 @@ class CommentParserService {
         content: List.from(currentContent),
       ));
     }
-    
+
     return sections;
   }
 
@@ -60,7 +60,7 @@ class CommentParserService {
 
     final bracketEnd = line.indexOf(']');
     final linkText = line.substring(1, bracketEnd);
-    final description = line.length > bracketEnd + 1 
+    final description = line.length > bracketEnd + 1
         ? line.substring(bracketEnd + 1).trim()
         : '';
 
@@ -112,7 +112,7 @@ class CommentParserService {
           ),
         ),
         SizedBox(height: 12),
-        
+
         // セクション内容
         ...section.content.map((line) => buildCommentLine(line)).toList(),
       ],
@@ -122,7 +122,7 @@ class CommentParserService {
   /// コメント行のウィジェットを構築する
   static Widget buildCommentLine(String line) {
     final lineType = getLineType(line);
-    
+
     switch (lineType) {
       case CommentLineType.bulletPoint:
         return _buildBulletPoint(line);
@@ -166,7 +166,7 @@ class CommentParserService {
 
   static Widget _buildLinkLine(String line) {
     final linkInfo = parseLink(line);
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
@@ -263,4 +263,4 @@ class LinkInfo {
     required this.description,
     required this.fullLine,
   });
-} 
+}

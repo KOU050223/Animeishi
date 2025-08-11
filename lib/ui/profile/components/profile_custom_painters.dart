@@ -57,14 +57,20 @@ class HeartsPainter extends CustomPainter {
     final path = Path();
     path.moveTo(center.dx, center.dy + size);
     path.cubicTo(
-      center.dx - size, center.dy - size / 2,
-      center.dx - size * 2, center.dy - size,
-      center.dx, center.dy - size / 2,
+      center.dx - size,
+      center.dy - size / 2,
+      center.dx - size * 2,
+      center.dy - size,
+      center.dx,
+      center.dy - size / 2,
     );
     path.cubicTo(
-      center.dx + size * 2, center.dy - size,
-      center.dx + size, center.dy - size / 2,
-      center.dx, center.dy + size,
+      center.dx + size * 2,
+      center.dy - size,
+      center.dx + size,
+      center.dy - size / 2,
+      center.dx,
+      center.dy + size,
     );
     canvas.drawPath(path, paint);
   }
@@ -126,4 +132,4 @@ class StripePatternPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-} 
+}

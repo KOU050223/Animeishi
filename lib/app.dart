@@ -1,7 +1,5 @@
 import 'package:animeishi/ui/auth/view/auth_page.dart';
-import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

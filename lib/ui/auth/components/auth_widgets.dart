@@ -224,7 +224,7 @@ class AuthWidgets {
           ),
         ),
         SizedBox(height: isSmallScreen ? 24 : 32),
-        
+
         // タイトル
         Text(
           title,
@@ -243,7 +243,7 @@ class AuthWidgets {
           ),
         ),
         SizedBox(height: 8),
-        
+
         // サブタイトル
         Text(
           subtitle,
@@ -257,4 +257,4 @@ class AuthWidgets {
       ],
     );
   }
-} 
+}

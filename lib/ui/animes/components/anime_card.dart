@@ -32,12 +32,12 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
+
     _favoriteController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _favoriteAnimation = Tween<double>(
       begin: 1.0,
       end: 1.3,
@@ -45,24 +45,24 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
       parent: _favoriteController,
       curve: Curves.elasticOut,
     ));
-    
+
     _checkFavoriteStatus();
   }
 
   Future<void> _checkFavoriteStatus() async {
     if (_user == null) return;
-    
+
     try {
       final tid = widget.anime['tid']?.toString();
       if (tid == null) return;
-      
+
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
           .collection('favorites')
           .doc(tid)
           .get();
-      
+
       if (mounted) {
         setState(() {
           _isFavorite = doc.exists;
@@ -75,21 +75,21 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
 
   Future<void> _toggleFavorite() async {
     if (_user == null || _isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final tid = widget.anime['tid']?.toString();
       if (tid == null) return;
-      
+
       final favoriteRef = FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
           .collection('favorites')
           .doc(tid);
-      
+
       if (_isFavorite) {
         // お気に入りから削除
         await favoriteRef.delete();
@@ -109,19 +109,18 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
           'comment': widget.anime['comment'],
           'addedAt': FieldValue.serverTimestamp(),
         });
-        
+
         if (mounted) {
           setState(() {
             _isFavorite = true;
           });
         }
       }
-      
+
       // アニメーション実行
       _favoriteController.forward().then((_) {
         _favoriteController.reverse();
       });
-      
     } catch (e) {
       print('Error toggling favorite: $e');
     } finally {
@@ -222,12 +221,14 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                         ],
                       ),
                       child: Icon(
-                        widget.isRegistered ? Icons.bookmark_added : Icons.movie_outlined,
+                        widget.isRegistered
+                            ? Icons.bookmark_added
+                            : Icons.movie_outlined,
                         color: Colors.white,
                         size: 28,
                       ),
                     ),
-                    
+
                     // 登録済みバッジ
                     if (widget.isRegistered)
                       Positioned(
@@ -263,7 +264,7 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                    
+
                     // お気に入りバッジ
                     if (_isFavorite)
                       Positioned(
@@ -279,7 +280,10 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                                 height: 20,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Colors.pink[400]!, Colors.pink[600]!],
+                                    colors: [
+                                      Colors.pink[400]!,
+                                      Colors.pink[600]!
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
@@ -306,9 +310,9 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                       ),
                   ],
                 ),
-                
+
                 SizedBox(width: 16),
-                
+
                 // アニメ情報
                 Expanded(
                   child: Column(
@@ -326,14 +330,15 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      
+
                       SizedBox(height: 4),
-                      
+
                       // TID表示と登録済みステータス
                       Row(
                         children: [
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: widget.isRegistered
                                   ? Color(0xFF48BB78).withOpacity(0.1)
@@ -351,11 +356,11 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          
                           if (widget.isRegistered) ...[
                             SizedBox(width: 8),
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
@@ -395,9 +400,9 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                           ],
                         ],
                       ),
-                      
+
                       SizedBox(height: 8),
-                      
+
                       // 年月表示
                       Row(
                         children: [
@@ -417,7 +422,7 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      
+
                       // コメントがある場合は表示
                       if (comment.isNotEmpty) ...[
                         SizedBox(height: 6),
@@ -435,9 +440,9 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
-                
+
                 SizedBox(width: 12),
-                
+
                 // お気に入りボタン
                 Container(
                   margin: EdgeInsets.only(right: 8),
@@ -476,8 +481,12 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                                   return Transform.scale(
                                     scale: _favoriteAnimation.value,
                                     child: Icon(
-                                      _isFavorite ? Icons.favorite : Icons.favorite_border,
-                                      color: _isFavorite ? Colors.pink[400] : Colors.grey[600],
+                                      _isFavorite
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: _isFavorite
+                                          ? Colors.pink[400]
+                                          : Colors.grey[600],
                                       size: 16,
                                     ),
                                   );
@@ -487,7 +496,7 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                
+
                 // 選択状態インジケーター（登録済みでない場合のみ表示）
                 if (!widget.isRegistered && widget.onSelectToggle != null)
                   GestureDetector(
@@ -524,4 +533,4 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
       ),
     );
   }
-} 
+}

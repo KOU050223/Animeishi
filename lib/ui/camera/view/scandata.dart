@@ -16,7 +16,6 @@ class ScanDataWidget extends StatefulWidget {
 
 class _ScanDataWidgetState extends State<ScanDataWidget>
     with TickerProviderStateMixin {
-  
   late ScanResultAnimationController _animationController;
   ScanDataResult? _scanResult;
   bool _isLoading = true;
@@ -100,7 +99,7 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
             ScanResultParticleBackground(
               animationController: _animationController.particleController,
             ),
-            
+
             // メインコンテンツ
             SafeArea(
               child: AnimatedScanResultContainer(
@@ -108,7 +107,7 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
                 child: _buildContent(),
               ),
             ),
-            
+
             // 戻るボタン
             Positioned(
               top: MediaQuery.of(context).padding.top + 16,
@@ -181,12 +180,12 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
               animationController: _animationController,
               child: ScanResultWidgets.buildSuccessHeader(),
             ),
-            
+
             // ユーザー情報カード
             ScanResultWidgets.buildUserInfoCard(userProfile),
-            
+
             const SizedBox(height: 20),
-            
+
             // アニメリストカード
             ScanResultWidgets.buildAnimeListCard(animeList),
           ],
@@ -194,4 +193,4 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
       ),
     );
   }
-} 
+}

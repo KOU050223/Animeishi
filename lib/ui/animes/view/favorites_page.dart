@@ -14,7 +14,7 @@ class _FavoritesPageState extends State<FavoritesPage>
   late AnimationController _fadeController;
   late AnimationController _particleController;
   late Animation<double> _fadeAnimation;
-  
+
   final User? _user = FirebaseAuth.instance.currentUser;
   List<Map<String, dynamic>> _favorites = [];
   bool _isLoading = true;
@@ -22,17 +22,17 @@ class _FavoritesPageState extends State<FavoritesPage>
   @override
   void initState() {
     super.initState();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _particleController = AnimationController(
       duration: const Duration(seconds: 20),
       vsync: this,
     )..repeat();
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -47,7 +47,7 @@ class _FavoritesPageState extends State<FavoritesPage>
 
   Future<void> _loadFavorites() async {
     if (_user == null) return;
-    
+
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
@@ -55,7 +55,7 @@ class _FavoritesPageState extends State<FavoritesPage>
           .collection('favorites')
           .orderBy('addedAt', descending: true)
           .get();
-      
+
       setState(() {
         _favorites = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -74,7 +74,7 @@ class _FavoritesPageState extends State<FavoritesPage>
 
   Future<void> _removeFavorite(String tid, String title) async {
     if (_user == null) return;
-    
+
     try {
       await FirebaseFirestore.instance
           .collection('users')
@@ -82,17 +82,18 @@ class _FavoritesPageState extends State<FavoritesPage>
           .collection('favorites')
           .doc(tid)
           .delete();
-      
+
       setState(() {
         _favorites.removeWhere((favorite) => favorite['id'] == tid);
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('「$title」をお気に入りから削除しました'),
           backgroundColor: Colors.grey[600],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     } catch (e) {
@@ -102,7 +103,8 @@ class _FavoritesPageState extends State<FavoritesPage>
           content: Text('削除に失敗しました'),
           backgroundColor: Colors.red[400],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -143,7 +145,7 @@ class _FavoritesPageState extends State<FavoritesPage>
                 );
               },
             ),
-            
+
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeAnimation,
@@ -186,7 +188,8 @@ class _FavoritesPageState extends State<FavoritesPage>
                       flexibleSpace: FlexibleSpaceBar(
                         centerTitle: true,
                         title: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -210,7 +213,10 @@ class _FavoritesPageState extends State<FavoritesPage>
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Colors.pink[400]!, Colors.pink[600]!],
+                                    colors: [
+                                      Colors.pink[400]!,
+                                      Colors.pink[600]!
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -270,7 +276,8 @@ class _FavoritesPageState extends State<FavoritesPage>
                                     (context, index) {
                                       final favorite = _favorites[index];
                                       return Padding(
-                                        padding: const EdgeInsets.only(bottom: 16),
+                                        padding:
+                                            const EdgeInsets.only(bottom: 16),
                                         child: _buildFavoriteCard(favorite),
                                       );
                                     },
@@ -402,9 +409,9 @@ class _FavoritesPageState extends State<FavoritesPage>
                     size: 30,
                   ),
                 ),
-                
+
                 const SizedBox(width: 16),
-                
+
                 // アニメ情報
                 Expanded(
                   child: Column(
@@ -434,7 +441,8 @@ class _FavoritesPageState extends State<FavoritesPage>
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -459,7 +467,8 @@ class _FavoritesPageState extends State<FavoritesPage>
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -488,7 +497,7 @@ class _FavoritesPageState extends State<FavoritesPage>
                     ],
                   ),
                 ),
-                
+
                 // 削除ボタン
                 Container(
                   decoration: BoxDecoration(
@@ -649,32 +658,32 @@ class _FavoritesPageState extends State<FavoritesPage>
 
 class FavoritesParticlePainter extends CustomPainter {
   final double animationValue;
-  
+
   FavoritesParticlePainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     final random = math.Random(42);
-    
+
     for (int i = 0; i < 25; i++) {
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height;
       final offset = (animationValue * 2 * math.pi + i) % (2 * math.pi);
-      
+
       final animatedX = x + math.sin(offset + i * 0.4) * 15;
       final animatedY = y + math.cos(offset + i * 0.6) * 15;
-      
+
       final opacity = (math.sin(animationValue * 1.2 * math.pi + i) + 1) / 2;
       final radius = 1 + math.sin(animationValue * 1.8 * math.pi + i) * 2;
-      
+
       paint.color = [
         Colors.pink.withOpacity(opacity * 0.4),
         const Color(0xFFE8D5FF).withOpacity(opacity * 0.3),
         const Color(0xFFFFD6E8).withOpacity(opacity * 0.4),
         Colors.pink[200]!.withOpacity(opacity * 0.3),
       ][i % 4];
-      
+
       canvas.drawCircle(
         Offset(animatedX, animatedY),
         radius,
@@ -685,4 +694,4 @@ class FavoritesParticlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
-} 
+}

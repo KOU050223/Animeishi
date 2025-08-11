@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'animeishi-73560.firebasestorage.app',
     measurementId: 'G-D36HJDVY12',
   );
-
 }

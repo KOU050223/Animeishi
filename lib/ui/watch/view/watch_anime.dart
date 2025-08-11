@@ -18,10 +18,9 @@ class WatchAnimePage extends StatefulWidget {
 
 class _WatchAnimePageState extends State<WatchAnimePage>
     with TickerProviderStateMixin {
-  
   // アニメーションコントローラー
   late WatchAnimeAnimationController _animationController;
-  
+
   // 状態管理
   bool _isFavorite = false;
   bool _isLoading = false;
@@ -52,26 +51,26 @@ class _WatchAnimePageState extends State<WatchAnimePage>
 
   Future<void> _handleFavoriteToggle() async {
     if (_user == null || _isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final result = await FavoriteService.toggleFavorite(
         widget.anime,
         _isFavorite,
       );
-      
+
       if (result.success) {
         setState(() {
           _isFavorite = result.isFavorite;
         });
-        
+
         // アニメーション実行
         _animationController.playFavoriteAnimation();
       }
-      
+
       // 結果を表示
       FavoriteService.showFavoriteSnackBar(context, result);
     } catch (e) {
@@ -117,7 +116,7 @@ class _WatchAnimePageState extends State<WatchAnimePage>
             ParticleBackgroundWidget(
               animationController: _animationController.particleController,
             ),
-            
+
             // メインコンテンツ
             SafeArea(
               child: AnimatedWatchAnimeContainer(
@@ -250,4 +249,4 @@ class _WatchAnimePageState extends State<WatchAnimePage>
       },
     );
   }
-} 
+}

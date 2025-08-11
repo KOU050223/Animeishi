@@ -16,9 +16,10 @@ class AnimeListViewModel extends ChangeNotifier {
   bool _disposed = false; // dispose状態を追跡
   String _searchQuery = ''; // 検索クエリ
 
-  List<Map<String, dynamic>> get animeList => _filteredAnimeList.isNotEmpty || _searchQuery.isNotEmpty 
-      ? _filteredAnimeList 
-      : _animeList;
+  List<Map<String, dynamic>> get animeList =>
+      _filteredAnimeList.isNotEmpty || _searchQuery.isNotEmpty
+          ? _filteredAnimeList
+          : _animeList;
   bool get isLoading => _isLoading;
   Set<String> get selectedAnime => _selectedAnime; // 一時的に選択されたアニメのTIDを取得するゲッター
   Set<String> get registeredAnime => _registeredAnime; // 登録済みアニメのTIDを取得するゲッター
@@ -49,13 +50,13 @@ class AnimeListViewModel extends ChangeNotifier {
         final titleYomi = anime['titleyomi'].toString().toLowerCase();
         final tid = anime['tid'].toString();
         final year = anime['firstyear'].toString();
-        
+
         return title.contains(_searchQuery) ||
-               titleYomi.contains(_searchQuery) ||
-               tid.contains(_searchQuery) ||
-               year.contains(_searchQuery);
+            titleYomi.contains(_searchQuery) ||
+            tid.contains(_searchQuery) ||
+            year.contains(_searchQuery);
       }).toList();
-      
+
       // 検索結果もソートする
       _sortFilteredList();
     }
@@ -124,12 +125,12 @@ class AnimeListViewModel extends ChangeNotifier {
       }
       return _isAscending ? compare : -compare; //昇順・降順の切り替え
     });
-    
+
     // 検索中の場合は、フィルタされたリストもソートする
     if (_searchQuery.isNotEmpty) {
       _sortFilteredList();
     }
-    
+
     _safeNotifyListeners();
   }
 
@@ -277,13 +278,13 @@ class AnimeListViewModel extends ChangeNotifier {
       for (var b in batches) {
         await b.commit(); // サーバーとやり取りするためオンライン必須
       }
-      
+
       // 登録済みアニメのセットを更新
       _registeredAnime.addAll(_selectedAnime);
-      
+
       // 一時選択をクリア
       _selectedAnime.clear();
-      
+
       print('セーブ処理完了');
     } catch (e) {
       print('セーブ処理中にエラーが発生しました: $e');
@@ -339,10 +340,10 @@ class AnimeListViewModel extends ChangeNotifier {
 
       // 登録済みアニメのセットから削除
       _registeredAnime.removeAll(_selectedAnime);
-      
+
       // ローカルで選択されたアニメのセットをクリア
       _selectedAnime.clear();
-      
+
       print('削除処理完了');
     } catch (e) {
       print('削除処理中にエラーが発生しました: $e');
@@ -366,10 +367,10 @@ class AnimeListViewModel extends ChangeNotifier {
 
       // 登録済みアニメのセットを更新
       _registeredAnime = snapshot.docs.map((doc) => doc.id).toSet();
-      
+
       // 一時選択をクリア（登録済みのものは選択状態から外す）
       _selectedAnime.clear();
-      
+
       _safeNotifyListeners();
       print('ロード処理完了');
     } else {

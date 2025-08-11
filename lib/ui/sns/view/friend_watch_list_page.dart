@@ -165,6 +165,7 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                 size: MediaQuery.of(context).size,
               ),
             ),
+
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeAnimation,
@@ -201,16 +202,19 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
 // パーティクルペインターのみ残す
 class FriendParticlePainter extends CustomPainter {
   final double animationValue;
+
   FriendParticlePainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     final random = math.Random(42);
+
     for (int i = 0; i < 20; i++) {
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height;
       final offset = (animationValue * 2 * math.pi + i) % (2 * math.pi);
+
       final animatedX = x + math.sin(offset + i) * 12;
       final animatedY = y + math.cos(offset + i) * 12;
       final opacity = (math.sin(animationValue * 3 * math.pi + i) + 1) / 2;
@@ -222,6 +226,7 @@ class FriendParticlePainter extends CustomPainter {
         const Color(0xFFE8FFD6).withOpacity(opacity * 0.6),
         const Color(0xFF667EEA).withOpacity(opacity * 0.4),
       ][i % 5];
+
       canvas.drawCircle(
         Offset(animatedX, animatedY),
         radius,

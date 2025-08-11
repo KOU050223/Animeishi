@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class ModernHeader extends StatelessWidget {
   final int friendCount;
   final VoidCallback onBack;
-  const ModernHeader({required this.friendCount, required this.onBack, super.key});
+  const ModernHeader(
+      {required this.friendCount, required this.onBack, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +62,8 @@ class ModernHeader extends StatelessWidget {
               Expanded(
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(25),
@@ -213,7 +215,8 @@ class ModernHeader extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [

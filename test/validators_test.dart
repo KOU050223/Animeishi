@@ -13,10 +13,12 @@ void main() {
       test('無効なメールアドレス', () {
         expect(Validators.validateEmail(''), 'メールアドレスを入力してください');
         expect(Validators.validateEmail(null), 'メールアドレスを入力してください');
-        expect(Validators.validateEmail('invalid-email'), '有効なメールアドレスを入力してください');
+        expect(
+            Validators.validateEmail('invalid-email'), '有効なメールアドレスを入力してください');
         expect(Validators.validateEmail('test@'), '有効なメールアドレスを入力してください');
         expect(Validators.validateEmail('@example.com'), '有効なメールアドレスを入力してください');
-        expect(Validators.validateEmail('test.example.com'), '有効なメールアドレスを入力してください');
+        expect(Validators.validateEmail('test.example.com'),
+            '有効なメールアドレスを入力してください');
       });
     });
 
@@ -31,8 +33,10 @@ void main() {
         expect(Validators.validatePassword(''), 'パスワードを入力してください');
         expect(Validators.validatePassword(null), 'パスワードを入力してください');
         expect(Validators.validatePassword('abc123'), 'パスワードは8文字以上で入力してください');
-        expect(Validators.validatePassword('password'), 'パスワードは英字と数字を含む必要があります');
-        expect(Validators.validatePassword('12345678'), 'パスワードは英字と数字を含む必要があります');
+        expect(
+            Validators.validatePassword('password'), 'パスワードは英字と数字を含む必要があります');
+        expect(
+            Validators.validatePassword('12345678'), 'パスワードは英字と数字を含む必要があります');
       });
     });
 
@@ -80,7 +84,8 @@ void main() {
 
     group('Utility Functions', () {
       test('メールアドレスの正規化', () {
-        expect(Validators.normalizeEmail('  Test@Example.COM  '), 'test@example.com');
+        expect(Validators.normalizeEmail('  Test@Example.COM  '),
+            'test@example.com');
       });
 
       test('ユーザー名の正規化', () {

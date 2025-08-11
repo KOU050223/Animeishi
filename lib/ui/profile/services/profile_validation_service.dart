@@ -21,8 +21,9 @@ class ProfileValidationService {
     if (email.trim().isEmpty) {
       return 'メールアドレスを入力してください';
     }
-    
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(email.trim())) {
       return '正しいメールアドレスの形式で入力してください';
     }
@@ -105,17 +106,19 @@ class ProfileValidationService {
           children: [
             Text('以下の項目を確認してください：'),
             SizedBox(height: 12),
-            ...errors.map((error) => Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.circle, size: 6, color: Colors.red[600]),
-                  SizedBox(width: 8),
-                  Expanded(child: Text(error)),
-                ],
-              ),
-            )).toList(),
+            ...errors
+                .map((error) => Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.circle, size: 6, color: Colors.red[600]),
+                          SizedBox(width: 8),
+                          Expanded(child: Text(error)),
+                        ],
+                      ),
+                    ))
+                .toList(),
           ],
         ),
         actions: [
@@ -184,4 +187,4 @@ class ValidationResult {
     required this.isValid,
     required this.errors,
   });
-} 
+}

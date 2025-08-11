@@ -87,7 +87,8 @@ class ErrorHandler {
     }
   }
 
-  static void logError(String context, dynamic error, [StackTrace? stackTrace]) {
+  static void logError(String context, dynamic error,
+      [StackTrace? stackTrace]) {
     if (kDebugMode) {
       print('=== Error in $context ===');
       print('Error: $error');
@@ -96,7 +97,7 @@ class ErrorHandler {
       }
       print('========================');
     }
-    
+
     // 本番環境では Firebase Crashlytics などにログ送信
     // FirebaseCrashlytics.instance.recordError(error, stackTrace, context: context);
   }
