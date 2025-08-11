@@ -304,7 +304,8 @@ class FriendLoadingState extends StatelessWidget {
                 width: 60,
                 height: 60,
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFF667EEA)),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(const Color(0xFF667EEA)),
                   strokeWidth: 3,
                 ),
               ),
@@ -462,7 +463,8 @@ class AnimeListTile extends StatelessWidget {
               PageRouteBuilder(
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     WatchAnimePage(anime: anime),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
                   return SlideTransition(
                     position: Tween<Offset>(
                       begin: const Offset(1.0, 0.0),
