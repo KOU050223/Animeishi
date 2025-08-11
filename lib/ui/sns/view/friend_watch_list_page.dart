@@ -101,15 +101,17 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
           .collection('titles')
           .where(FieldPath.documentId, whereIn: _selectedAnime.toList())
           .get();
-      _animeList = snapshot.docs.map((doc) => {
-            'id': doc.id,
-            'tid': doc['TID'].toString(),
-            'title': doc['Title'],
-            'titleyomi': doc['TitleYomi'],
-            'firstmonth': doc['FirstMonth'],
-            'firstyear': doc['FirstYear'],
-            'comment': doc['Comment'],
-          }).toList();
+      _animeList = snapshot.docs
+          .map((doc) => {
+                'id': doc.id,
+                'tid': doc['TID'].toString(),
+                'title': doc['Title'],
+                'titleyomi': doc['TitleYomi'],
+                'firstmonth': doc['FirstMonth'],
+                'firstyear': doc['FirstYear'],
+                'comment': doc['Comment'],
+              })
+          .toList();
       _sortAnimeList();
     } catch (e) {
       print('Failed to fetch anime details: $e');
@@ -165,7 +167,6 @@ class _FriendWatchListPageState extends State<FriendWatchListPage>
                 size: MediaQuery.of(context).size,
               ),
             ),
-
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeAnimation,
