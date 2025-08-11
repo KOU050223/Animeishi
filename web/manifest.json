@@ -1,11 +1,11 @@
 {
-    "name": "animeishi",
-    "short_name": "animeishi",
+    "name": "アニ名刺",
+    "short_name": "アニ名刺",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "アニメの視聴履歴を交換して話のタネにするアプリ。QRコードで簡単に情報交換。",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
