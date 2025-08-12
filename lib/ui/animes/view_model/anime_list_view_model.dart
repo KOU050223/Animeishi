@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:collection/collection.dart';
+import 'package:animeishi/config/feature_flags.dart';
 
 enum SortOrder { tid, year, name }
 
@@ -142,6 +143,18 @@ class AnimeListViewModel extends ChangeNotifier {
   }
 
   Future<void> initOfflineModeAndLoadCache() async {
+    // 開発環境ではテストデータを使用
+    if (FeatureFlags.enableTestDataCreation) {
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('開発環境: キャッシュの代わりにテスト用データを使用します');
+      }
+
+      _animeList = _generateTestData();
+      sortAnimeList();
+      _safeNotifyListeners();
+      return;
+    }
+
     // await FirebaseFirestore.instance.disableNetwork();
     final cacheSnapshot = await FirebaseFirestore.instance
         .collection('titles')
@@ -168,7 +181,228 @@ class AnimeListViewModel extends ChangeNotifier {
       _animeList = cacheList;
       sortAnimeList(); //ソートの適用
       _safeNotifyListeners();
+    } else if (FeatureFlags.enableTestDataCreation) {
+      // キャッシュが存在しない場合、開発環境ならテストデータを使用
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('キャッシュが存在しないため、テスト用データを使用します');
+      }
+      _animeList = _generateTestData();
+      sortAnimeList();
+      _safeNotifyListeners();
     }
+  }
+
+  /// テスト用のアニメリストデータを生成（実際のTIDに準拠した内容）
+  List<Map<String, dynamic>> _generateTestData() {
+    return [
+      {
+        'id': '1',
+        'tid': '1',
+        'title': '魔法遣いに大切なこと',
+        'titleyomi': 'まほうつかいにたいせつなこと',
+        'firstmonth': '1',
+        'firstyear': '2003',
+        'comment': 'A magical realism anime',
+      },
+      {
+        'id': '2',
+        'tid': '2',
+        'title': 'ソニックX',
+        'titleyomi': 'ソニックエックス',
+        'firstmonth': '4',
+        'firstyear': '2003',
+        'comment': 'A Sonic the Hedgehog anime',
+      },
+      {
+        'id': '3',
+        'tid': '3',
+        'title': 'Attack on Titan',
+        'titleyomi': '進撃の巨人',
+        'firstmonth': '4',
+        'firstyear': '2013',
+        'comment': 'A dark fantasy anime',
+      },
+      {
+        'id': '4',
+        'tid': '4',
+        'title': 'My Hero Academia',
+        'titleyomi': '僕のヒーローアカデミア',
+        'firstmonth': '4',
+        'firstyear': '2016',
+        'comment': 'A superhero anime',
+      },
+      {
+        'id': '5',
+        'tid': '5',
+        'title': 'Demon Slayer',
+        'titleyomi': '鬼滅の刃',
+        'firstmonth': '4',
+        'firstyear': '2019',
+        'comment': 'A demon hunting anime',
+      },
+      {
+        'id': '6',
+        'tid': '6',
+        'title': 'Fullmetal Alchemist',
+        'titleyomi': '鋼の錬金術師',
+        'firstmonth': '10',
+        'firstyear': '2003',
+        'comment': 'An alchemy adventure anime',
+      },
+      {
+        'id': '7',
+        'tid': '7',
+        'title': 'Death Note',
+        'titleyomi': 'デスノート',
+        'firstmonth': '10',
+        'firstyear': '2006',
+        'comment': 'A psychological thriller anime',
+      },
+      {
+        'id': '8',
+        'tid': '8',
+        'title': 'Sword Art Online',
+        'titleyomi': 'ソードアート・オンライン',
+        'firstmonth': '7',
+        'firstyear': '2012',
+        'comment': 'A virtual reality anime',
+      },
+      {
+        'id': '9',
+        'tid': '9',
+        'title': 'Tokyo Ghoul',
+        'titleyomi': '東京喰種',
+        'firstmonth': '7',
+        'firstyear': '2014',
+        'comment': 'A dark fantasy anime',
+      },
+      {
+        'id': '10',
+        'tid': '10',
+        'title': 'Fairy Tail',
+        'titleyomi': 'フェアリーテイル',
+        'firstmonth': '10',
+        'firstyear': '2009',
+        'comment': 'A magic adventure anime',
+      },
+      {
+        'id': '11',
+        'tid': '11',
+        'title': 'Bleach',
+        'titleyomi': 'ブリーチ',
+        'firstmonth': '10',
+        'firstyear': '2004',
+        'comment': 'A soul reaper anime',
+      },
+      {
+        'id': '12',
+        'tid': '12',
+        'title': 'Dragon Ball Z',
+        'titleyomi': 'ドラゴンボールZ',
+        'firstmonth': '4',
+        'firstyear': '1989',
+        'comment': 'A classic martial arts anime',
+      },
+      {
+        'id': '13',
+        'tid': '13',
+        'title': 'Hunter x Hunter',
+        'titleyomi': 'ハンター×ハンター',
+        'firstmonth': '10',
+        'firstyear': '1999',
+        'comment': 'A hunter adventure anime',
+      },
+      {
+        'id': '14',
+        'tid': '14',
+        'title': 'Black Clover',
+        'titleyomi': 'ブラッククローバー',
+        'firstmonth': '10',
+        'firstyear': '2017',
+        'comment': 'A magic fantasy anime',
+      },
+      {
+        'id': '15',
+        'tid': '15',
+        'title': 'Jujutsu Kaisen',
+        'titleyomi': '呪術廻戦',
+        'firstmonth': '10',
+        'firstyear': '2020',
+        'comment': 'A supernatural action anime',
+      },
+      {
+        'id': '16',
+        'tid': '16',
+        'title': 'Re:Zero',
+        'titleyomi': 'Re:ゼロから始める異世界生活',
+        'firstmonth': '4',
+        'firstyear': '2016',
+        'comment': 'A fantasy adventure anime',
+      },
+      {
+        'id': '17',
+        'tid': '17',
+        'title': 'Steins;Gate',
+        'titleyomi': 'シュタインズ・ゲート',
+        'firstmonth': '4',
+        'firstyear': '2011',
+        'comment': 'A science fiction anime',
+      },
+      {
+        'id': '18',
+        'tid': '18',
+        'title': 'Code Geass',
+        'titleyomi': 'コードギアス',
+        'firstmonth': '10',
+        'firstyear': '2006',
+        'comment': 'A mecha anime',
+      },
+      {
+        'id': '19',
+        'tid': '19',
+        'title': 'Gintama',
+        'titleyomi': '銀魂',
+        'firstmonth': '4',
+        'firstyear': '2006',
+        'comment': 'A comedy action anime',
+      },
+      {
+        'id': '20',
+        'tid': '20',
+        'title': 'One Punch Man',
+        'titleyomi': 'ワンパンマン',
+        'firstmonth': '10',
+        'firstyear': '2015',
+        'comment': 'A superhero parody anime',
+      },
+      {
+        'id': '21',
+        'tid': '21',
+        'title': 'Mob Psycho 100',
+        'titleyomi': 'モブサイコ100',
+        'firstmonth': '7',
+        'firstyear': '2016',
+        'comment': 'A supernatural comedy anime',
+      },
+      {
+        'id': '22',
+        'tid': '22',
+        'title': 'The Promised Neverland',
+        'titleyomi': '約束のネバーランド',
+        'firstmonth': '1',
+        'firstyear': '2019',
+        'comment': 'A dark fantasy thriller anime',
+      },
+      {
+        'id': '23',
+        'tid': '23',
+        'title': 'Dr. Stone',
+        'titleyomi': 'ドクターストーン',
+        'firstmonth': '7',
+        'firstyear': '2019',
+        'comment': 'A science adventure anime',
+      },
+    ];
   }
 
   Future<void> fetchFromServer() async {
@@ -176,6 +410,26 @@ class AnimeListViewModel extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
+      // 開発環境でのテストデータ使用判定
+      if (FeatureFlags.enableTestDataCreation) {
+        if (FeatureFlags.enableDebugLogs) {
+          debugPrint('開発環境: テスト用アニメリストを使用します');
+        }
+
+        // テスト用データを使用
+        _animeList = _generateTestData();
+        sortAnimeList();
+
+        // 選択されたアニメの情報を取得
+        await loadSelectedAnime();
+
+        if (FeatureFlags.enableDebugLogs) {
+          debugPrint('テスト用データの読み込み完了: ${_animeList.length}件');
+        }
+        return;
+      }
+
+      // 本番環境: Firestoreからデータを取得
       await FirebaseFirestore.instance.enableNetwork();
       final serverSnapshot = await FirebaseFirestore.instance
           .collection('titles')
@@ -203,6 +457,15 @@ class AnimeListViewModel extends ChangeNotifier {
       // await FirebaseFirestore.instance.disableNetwork();
     } catch (e) {
       debugPrint('Error fetching from server: $e');
+
+      // エラー時に開発環境ならテストデータをフォールバックとして使用
+      if (FeatureFlags.enableTestDataCreation) {
+        if (FeatureFlags.enableDebugLogs) {
+          debugPrint('サーバーエラーのため、テスト用データを使用します');
+        }
+        _animeList = _generateTestData();
+        sortAnimeList();
+      }
     } finally {
       _isLoading = false;
       _safeNotifyListeners();

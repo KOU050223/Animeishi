@@ -134,75 +134,55 @@ class AnimeDetailWidgets {
                 final containerHeight = containerWidth * 4 / 3; // 3:4の縦長比率
 
                 return Container(
-                    width: containerWidth,
-                    height: containerHeight,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(25),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF667EEA).withOpacity(0.4),
-                          blurRadius: 25,
-                          offset: const Offset(0, 15),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: snapshot.connectionState == ConnectionState.waiting
-                          ? Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF667EEA),
-                                    Color(0xFF764BA2)
-                                  ],
-                                ),
+                  width: containerWidth,
+                  height: containerHeight,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF667EEA).withOpacity(0.4),
+                        blurRadius: 25,
+                        offset: const Offset(0, 15),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(25),
+                    child: snapshot.connectionState == ConnectionState.waiting
+                        ? Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
                               ),
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 3,
-                                ),
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
                               ),
-                            )
-                          : snapshot.data != null
-                              ? CachedNetworkImage(
-                                  imageUrl: snapshot.data!,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => Container(
-                                    decoration: const BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Color(0xFF667EEA),
-                                          Color(0xFF764BA2)
-                                        ],
-                                      ),
-                                    ),
-                                    child: const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 3,
-                                      ),
+                            ),
+                          )
+                        : snapshot.data != null
+                            ? CachedNetworkImage(
+                                imageUrl: snapshot.data!,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xFF667EEA),
+                                        Color(0xFF764BA2)
+                                      ],
                                     ),
                                   ),
-                                  errorWidget: (context, url, error) =>
-                                      Container(
-                                    decoration: const BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Color(0xFF667EEA),
-                                          Color(0xFF764BA2)
-                                        ],
-                                      ),
-                                    ),
-                                    child: const Icon(
-                                      Icons.play_circle_filled,
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
                                       color: Colors.white,
-                                      size: 50,
+                                      strokeWidth: 3,
                                     ),
                                   ),
-                                )
-                              : Container(
+                                ),
+                                errorWidget: (context, url, error) => Container(
                                   decoration: const BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
@@ -217,7 +197,23 @@ class AnimeDetailWidgets {
                                     size: 50,
                                   ),
                                 ),
-                    ),
+                              )
+                            : Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFF667EEA),
+                                      Color(0xFF764BA2)
+                                    ],
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.play_circle_filled,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                              ),
+                  ),
                 );
               },
             );
