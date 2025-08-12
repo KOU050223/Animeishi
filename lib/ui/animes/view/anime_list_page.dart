@@ -230,20 +230,20 @@ class AnimeListPage extends StatelessWidget {
             final hasSelected = viewModel.selectedAnime.isNotEmpty;
 
             if (!hasSelected) {
-              return SizedBox.shrink(); // 選択されたアニメがない場合は非表示
+              return const SizedBox.shrink(); // 選択されたアニメがない場合は非表示
             }
 
             return Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [Color(0xFF667eea), Color(0xFF764ba2)],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFF667eea).withOpacity(0.3),
+                    color: const Color(0xFF667eea).withOpacity(0.3),
                     blurRadius: 12,
-                    offset: Offset(0, 4),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -253,13 +253,13 @@ class AnimeListPage extends StatelessWidget {
                 elevation: 0,
                 label: Text(
                   '登録 (${viewModel.selectedAnime.length}件)',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
-                icon: Icon(
+                icon: const Icon(
                   Icons.bookmark_add,
                   color: Colors.white,
                   size: 20,
