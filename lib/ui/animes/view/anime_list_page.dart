@@ -141,8 +141,6 @@ class AnimeListPage extends StatelessWidget {
                       viewModel: viewModel,
                       onFetchFromServer: () =>
                           _handleFetchFromServer(context, viewModel),
-                      onSaveSelected: () =>
-                          _handleSaveSelected(context, viewModel),
                     ),
                   ),
 
@@ -226,6 +224,49 @@ class AnimeListPage extends StatelessWidget {
               );
             },
           ),
+        ),
+        floatingActionButton: Consumer<AnimeListViewModel>(
+          builder: (context, viewModel, child) {
+            final hasSelected = viewModel.selectedAnime.isNotEmpty;
+
+            if (!hasSelected) {
+              return const SizedBox.shrink(); // 選択されたアニメがない場合は非表示
+            }
+
+            return Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF667eea).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton.extended(
+                onPressed: () => _handleSaveSelected(context, viewModel),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                label: Text(
+                  '登録 (${viewModel.selectedAnime.length}件)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                icon: const Icon(
+                  Icons.bookmark_add,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
