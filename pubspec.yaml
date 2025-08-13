@@ -47,6 +47,8 @@ dependencies:
   firebase_storage: ^12.3.8
   cached_network_image: ^3.3.0
   http: ^1.1.0
+  google_generative_ai: ^0.4.6
+  flutter_dotenv: ^5.2.1
 
 dev_dependencies:
   flutter_test:

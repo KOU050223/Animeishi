@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
+import 'package:animeishi/ui/camera/services/anime_analysis_service.dart';
+import 'package:animeishi/ui/camera/services/scan_data_service.dart';
 import '../controllers/scan_result_animation_controller.dart';
 import '../services/scan_data_service.dart';
 import '../components/scan_result_widgets.dart';
@@ -20,6 +22,9 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
   ScanDataResult? _scanResult;
   bool _isLoading = true;
   String? _userId;
+
+  String? analysisComment;
+  bool isAnalyzing = false;
 
   @override
   void initState() {
@@ -67,6 +72,36 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
           errorMessage: e.toString(),
         );
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _runAnalysis(String userId) async {
+    setState(() {
+      isAnalyzing = true;
+      analysisComment = null;
+    });
+
+    try {
+      final animeList = await ScanDataService.getAnimeDetails(
+        await ScanDataService.getSelectedAnimeTIDs(userId),
+      );
+      final userData = await ScanDataService.getUserData(userId);
+      final username = userData?['username'] ?? null;
+
+      final analysisService = AnimeAnalysisService();
+      final comment = await analysisService.analyzeAnimeTrends(
+        animeList,
+        username: username,
+      );
+      setState(() {
+        analysisComment = comment;
+        isAnalyzing = false;
+      });
+    } catch (e) {
+      setState(() {
+        analysisComment = 'AI分析に失敗しました: $e';
+        isAnalyzing = false;
       });
     }
   }
@@ -188,6 +223,67 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
 
             // アニメリストカード
             ScanResultWidgets.buildAnimeListCard(animeList),
+
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.insights),
+              label: const Text('AIで視聴傾向を分析'),
+              onPressed: isAnalyzing
+                  ? null
+                  : () => _runAnalysis(_userId!),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF667EEA),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (isAnalyzing)
+              Row(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(width: 12),
+                  const Text('分析中...'),
+                ],
+              ),
+            if (analysisComment != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(top: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: const Color(0xFF667EEA).withOpacity(0.2),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.insights, color: Color(0xFF667EEA)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        analysisComment!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF667EEA),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
