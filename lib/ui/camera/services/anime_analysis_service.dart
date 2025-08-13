@@ -41,7 +41,7 @@ ${titles.map((t) => "- $t").join('\n')}
       ]);
       comment = response.text ?? '傾向分析コメントを生成できませんでした。';
     } catch (e) {
-      comment = 'AI分析に失敗しました: $e';
+      comment = 'AI分析に失敗しました。しばらく時間をおいて再度お試しください。';
     }
 
     // Firestoreに保存
