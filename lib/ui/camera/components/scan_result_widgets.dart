@@ -210,7 +210,7 @@ class ScanResultWidgets {
   }
 
   /// ユーザー情報カードを構築
-  static Widget buildUserInfoCard(UserProfile userProfile) {
+  static Widget buildUserInfoCard(UserProfile userProfile, {String? analysisComment}) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -395,6 +395,48 @@ class ScanResultWidgets {
                     ),
                   );
                 }).toList(),
+              ),
+            ],
+            // --- ここから分析コメント表示 ---
+            if (analysisComment != null && analysisComment.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFB8E6FF).withOpacity(0.2),
+                      const Color(0xFF667EEA).withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: const Color(0xFF667EEA).withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.insights,
+                      color: const Color(0xFF667EEA),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        analysisComment,
+                        style: TextStyle(
+                          color: Colors.grey.shade800,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],

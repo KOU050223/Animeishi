@@ -118,6 +118,24 @@ class ScanDataService {
       favoriteQuote: userData['favoriteQuote'] ?? '',
     );
   }
+
+  /// analysisCommentを取得
+  static Future<String?> getAnalysisComment(String currentUserId, String friendUserId) async {
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .collection('meishies')
+          .doc(friendUserId)
+          .get();
+      if (doc.exists) {
+        return doc.data()?['analysisComment'] as String?;
+      }
+    } catch (e) {
+      print('analysisComment取得エラー: $e');
+    }
+    return null;
+  }
 }
 
 /// スキャンデータ取得結果を格納するクラス
