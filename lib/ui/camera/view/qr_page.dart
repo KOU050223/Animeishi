@@ -7,8 +7,6 @@ import 'package:animeishi/ui/camera/view/scandata.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:animeishi/utils/error_handler.dart';
 import 'package:animeishi/utils/validators.dart';
-import 'package:animeishi/ui/camera/services/anime_analysis_service.dart';
-import 'package:animeishi/ui/camera/services/scan_data_service.dart';
 import 'dart:math' as math;
 
 class ScannerWidget extends StatefulWidget {
@@ -104,27 +102,6 @@ class _ScannerWidgetState extends State<ScannerWidget>
           .set({
         'scanned_at': FieldValue.serverTimestamp(),
       });
-
-      // --- ここからAI分析処理を追加 ---
-      try {
-        print('[QR] アニメ傾向分析開始: $userId');
-        final animeList = await ScanDataService.getAnimeDetails(
-          await ScanDataService.getSelectedAnimeTIDs(userId),
-        );
-        final userData = await ScanDataService.getUserData(userId);
-        final username = userData?['username'] ?? null;
-
-        final analysisService = AnimeAnalysisService();
-        final comment = await analysisService.analyzeAndSaveAnimeTrends(
-          animeList: animeList,
-          friendUserId: userId,
-          username: username,
-        );
-        print('[QR] AI分析コメント: $comment');
-      } catch (e) {
-        print('[QR] AI分析エラー: $e');
-      }
-      // --- ここまで ---
 
       _showSuccess('フレンドを追加しました');
       ErrorHandler.logInfo('QR Scan', 'Successfully added friend: $userId');

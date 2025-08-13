@@ -15,12 +15,8 @@ class AnimeAnalysisService {
     _generativeModel = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
   }
 
-  /// アニメリストから傾向分析コメントを生成し、Firestoreに保存
-  Future<String> analyzeAndSaveAnimeTrends({
-    required List<Map<String, dynamic>> animeList,
-    required String friendUserId,
-    String? username,
-  }) async {
+  /// アニメリストから傾向分析コメントを生成
+  Future<String> analyzeAnimeTrends(List<Map<String, dynamic>> animeList, {String? username}) async {
     if (animeList.isEmpty) {
       return 'アニメの視聴履歴がありません。';
     }
@@ -34,33 +30,13 @@ ${titles.map((t) => "- $t").join('\n')}
 傾向や好み、ジャンル、性格などを推測し、100文字程度でコメントしてください。
 ''';
 
-    String comment;
     try {
       final response = await _generativeModel.generateContent([
         Content.text(prompt),
       ]);
-      comment = response.text ?? '傾向分析コメントを生成できませんでした。';
+      return response.text ?? '傾向分析コメントを生成できませんでした。';
     } catch (e) {
-      comment = 'AI分析に失敗しました。しばらく時間をおいて再度お試しください。';
+      return 'AI分析に失敗しました。しばらく時間をおいて再度お試しください。';
     }
-
-    // Firestoreに保存
-    try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser == null) throw Exception('未認証ユーザー');
-
-      print('[AnimeAnalysisService] Firestore保存: /users/${currentUser.uid}/meishies/$friendUserId analysisComment');
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .collection('meishies')
-          .doc(friendUserId)
-          .update({'analysisComment': comment});
-      print('[AnimeAnalysisService] 保存完了: $comment');
-    } catch (e) {
-      print('[AnimeAnalysisService] 分析コメント保存エラー: $e');
-    }
-
-    return comment;
   }
 }
