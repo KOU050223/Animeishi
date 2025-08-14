@@ -228,9 +228,7 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
             ElevatedButton.icon(
               icon: const Icon(Icons.insights),
               label: const Text('AIで視聴傾向を分析'),
-              onPressed: isAnalyzing
-                  ? null
-                  : () => _runAnalysis(_userId!),
+              onPressed: isAnalyzing ? null : () => _runAnalysis(_userId!),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF667EEA),
                 foregroundColor: Colors.white,

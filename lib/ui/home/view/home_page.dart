@@ -7,6 +7,7 @@ import 'package:animeishi/ui/profile/view/profile_page.dart';
 import 'package:animeishi/ui/camera/view/qr_page.dart';
 import 'package:animeishi/ui/sns/view/sns_page.dart';
 import 'package:animeishi/ui/profile/services/qr_image_service.dart';
+import 'package:animeishi/ui/profile/services/qr_save_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -149,7 +150,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
         foregroundColor: const Color(0xFF667EEA), // ブランドカラー
         backgroundColor: Colors.white,
       );
-      
+
       if (mounted) {
         setState(() {
           _qrImageData = imageData;
@@ -172,11 +173,44 @@ class _HomeTabPageState extends State<HomeTabPage> {
     }
   }
 
+  /// QR画像をギャラリーに保存する
+  Future<void> _saveQRToGallery() async {
+    if (_qrImageData == null || _currentUser == null) return;
+
+    try {
+      // ユーザー名を取得（表示名がある場合は表示名、なければメールアドレス）
+      final username = _currentUser!.displayName ?? _currentUser!.email ?? 'user';
+      final filename = QRSaveService.generateFilename(username);
+      final success =
+          await QRSaveService.saveToGallery(_qrImageData!, filename);
+
+      if (mounted && success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('QRコードを保存しました'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('保存に失敗しました: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
     final String? currentUserId = user?.uid;
-    
+
     // ユーザーIDが変更された場合のみ処理（無限ループを防ぐ）
     if (currentUserId != _lastUserId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -185,7 +219,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
           _lastUserId = currentUserId;
           _qrImageData = null; // 既存の画像をクリア
         });
-        
+
         if (user != null && mounted) {
           _generateQRCode();
         }
@@ -303,6 +337,32 @@ class _HomeTabPageState extends State<HomeTabPage> {
                       ),
                     ),
                   const SizedBox(height: 20),
+
+                  // 保存ボタン（QRコードが生成されている場合のみ表示）
+                  if (user != null &&
+                      _qrImageData != null &&
+                      !_isGenerating) ...[
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: _saveQRToGallery,
+                        icon: const Icon(Icons.download, size: 20),
+                        label: const Text('保存'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF667EEA),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   Text(
                     user?.email ?? 'ゲスト',
                     style: const TextStyle(
