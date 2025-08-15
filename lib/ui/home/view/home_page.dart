@@ -8,6 +8,8 @@ import 'package:animeishi/ui/camera/view/qr_page.dart';
 import 'package:animeishi/ui/sns/view/sns_page.dart';
 import 'package:animeishi/ui/profile/services/qr_image_service.dart';
 import 'package:animeishi/ui/profile/services/qr_save_service.dart';
+import 'package:animeishi/ui/home/services/meishi_image_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -123,6 +125,8 @@ class _HomeTabPageState extends State<HomeTabPage> {
   bool _isGenerating = false;
   User? _currentUser;
   String? _lastUserId; // 最後に処理したユーザーIDを記録
+  String? _meishiImageURL;
+  bool _isUploadingMeishi = false;
 
   @override
   void initState() {
@@ -131,6 +135,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
     _lastUserId = _currentUser?.uid;
     if (_currentUser != null) {
       _generateQRCode();
+      _loadMeishiImage();
     }
   }
 
@@ -173,13 +178,74 @@ class _HomeTabPageState extends State<HomeTabPage> {
     }
   }
 
+  /// 名刺画像を読み込む
+  Future<void> _loadMeishiImage() async {
+    try {
+      final imageURL = await MeishiImageService.getMeishiImageURL();
+      if (mounted) {
+        setState(() {
+          _meishiImageURL = imageURL;
+        });
+      }
+    } catch (e) {
+      print('名刺画像読み込みエラー: $e');
+    }
+  }
+
+  /// 名刺画像を選択・アップロード
+  Future<void> _selectMeishiImage() async {
+    setState(() {
+      _isUploadingMeishi = true;
+    });
+
+    try {
+      final String? imageURL =
+          await MeishiImageService.selectAndUploadMeishiImage();
+
+      if (mounted) {
+        if (imageURL != null) {
+          setState(() {
+            _meishiImageURL = imageURL;
+            _isUploadingMeishi = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('名刺画像を設定しました'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          setState(() {
+            _isUploadingMeishi = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('名刺画像アップロードエラー: $e');
+      if (mounted) {
+        setState(() {
+          _isUploadingMeishi = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('名刺画像の設定に失敗しました'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   /// QR画像をギャラリーに保存する
   Future<void> _saveQRToGallery() async {
     if (_qrImageData == null || _currentUser == null) return;
 
     try {
       // ユーザー名を取得（表示名がある場合は表示名、なければメールアドレス）
-      final username = _currentUser!.displayName ?? _currentUser!.email ?? 'user';
+      final username =
+          _currentUser!.displayName ?? _currentUser!.email ?? 'user';
       final filename = QRSaveService.generateFilename(username);
       final success =
           await QRSaveService.saveToGallery(_qrImageData!, filename);
@@ -222,6 +288,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
 
         if (user != null && mounted) {
           _generateQRCode();
+          _loadMeishiImage();
         }
       });
     }
@@ -370,6 +437,164 @@ class _HomeTabPageState extends State<HomeTabPage> {
                       color: Colors.grey,
                     ),
                   ),
+                ],
+              ),
+            ),
+
+            // 名刺画像セクション
+            const SizedBox(height: 30),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'あなたの名刺',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 名刺画像表示部分
+                  if (user != null) ...[
+                    if (_isUploadingMeishi)
+                      Container(
+                        width: 250,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 8),
+                              Text(
+                                'アップロード中...',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else if (_meishiImageURL != null)
+                      Container(
+                        width: 250,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            imageUrl: _meishiImageURL!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey.shade100,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey.shade100,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.error,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        width: 250,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '名刺画像が\n設定されていません',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ] else
+                    Container(
+                      width: 250,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'ログインしてください',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 20),
+
+                  // 名刺画像設定ボタン
+                  if (user != null && !_isUploadingMeishi) ...[
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: _selectMeishiImage,
+                        icon: Icon(
+                          _meishiImageURL != null
+                              ? Icons.edit
+                              : Icons.add_photo_alternate,
+                          size: 20,
+                        ),
+                        label:
+                            Text(_meishiImageURL != null ? '名刺を変更' : '名刺を設定'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF667EEA),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
