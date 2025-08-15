@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:animeishi/ui/sns/view/friend_watch_list_page.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:animeishi/ui/sns/view/widgets/sns_header.dart';
 import 'package:animeishi/ui/sns/view/widgets/sns_loading.dart';
@@ -85,7 +84,7 @@ class _SNSPageState extends State<SNSPage> with TickerProviderStateMixin {
 
   Future<void> _getCurrentUser() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+    if (user != null && mounted) {
       setState(() {
         _currentUserId = user.uid;
       });
@@ -121,19 +120,23 @@ class _SNSPageState extends State<SNSPage> with TickerProviderStateMixin {
         }
       }
 
+     if (mounted) {
       setState(() {
         _friendIds = friendIds;
         _friendNames = friendNames;
         _friendGenres = friendGenres;
         _isLoading = false;
       });
+     }
     } catch (e) {
       print('Failed to fetch friends: $e');
-      setState(() {
+      if (mounted) {
+       setState(() {
         _isLoading = false;
       });
     }
   }
+}
 
   Future<void> _deleteFriend(String friendId) async {
     try {
@@ -144,12 +147,14 @@ class _SNSPageState extends State<SNSPage> with TickerProviderStateMixin {
           .doc(friendId)
           .delete();
 
+    if (mounted) {
       setState(() {
         final index = _friendIds.indexOf(friendId);
         _friendIds.removeAt(index);
         _friendNames.removeAt(index);
         _friendGenres.removeAt(index);
       });
+    }
 
       _showSnackBar('フレンドを削除しました', isSuccess: true);
     } catch (e) {
