@@ -112,10 +112,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 class HomeTabPage extends StatelessWidget {
   const HomeTabPage({super.key});
 
+  String _generateShortId(String uid) {
+    return uid.substring(0, 8);
+  }
+
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
-    final String qrData = user?.uid ?? "No UID";
+    final String qrData = user?.uid != null 
+        ? "https://animeishi-73560.web.app/user/${_generateShortId(user!.uid)}"
+        : "No UID";
 
     return Scaffold(
       appBar: AppBar(
@@ -168,6 +174,7 @@ class HomeTabPage extends StatelessWidget {
                       color: Colors.grey,
                     ),
                   ),
+                   
                 ],
               ),
             ),
