@@ -617,6 +617,36 @@ class AnimeListViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> removeAnime(String tid) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      print('user is null');
+      return;
+    }
+
+    await FirebaseFirestore.instance.enableNetwork();
+
+    try {
+      final userId = user.uid;
+      final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('selectedAnime')
+        .doc(tid);
+
+      await docRef.delete();
+
+      _registeredAnime.remove(tid);
+
+      print('アニメ削除完了: $tid');
+    } catch (e) {
+      print('アニメ削除中にエラーが発生しました: $e');
+    } finally {
+      _safeNotifyListeners();
+    }
+  }
+
+
   Future<void> loadSelectedAnime() async {
     final user = FirebaseAuth.instance.currentUser;
     print('ロード処理開始');
@@ -632,7 +662,7 @@ class AnimeListViewModel extends ChangeNotifier {
       _registeredAnime = snapshot.docs.map((doc) => doc.id).toSet();
 
       // 一時選択をクリア（登録済みのものは選択状態から外す）
-      _selectedAnime.clear();
+      _selectedAnime.clear();;
 
       _safeNotifyListeners();
       print('ロード処理完了');
