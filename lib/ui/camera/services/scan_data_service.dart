@@ -120,7 +120,8 @@ class ScanDataService {
   }
 
   /// analysisCommentを取得
-  static Future<String?> getAnalysisComment(String currentUserId, String friendUserId) async {
+  static Future<String?> getAnalysisComment(
+      String currentUserId, String friendUserId) async {
     try {
       final doc = await _firestore
           .collection('users')
