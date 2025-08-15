@@ -128,4 +128,19 @@ class ProfileDataService {
       return false;
     }
   }
+
+  /// 特定のユーザーIDからユーザー名を取得する
+  static Future<String?> getUsernameByUserId(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        return data['username'] as String?;
+      }
+    } catch (e) {
+      print('ユーザー名取得エラー: $e');
+    }
+    return null;
+  }
 }
