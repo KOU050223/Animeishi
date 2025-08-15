@@ -662,7 +662,7 @@ class AnimeListViewModel extends ChangeNotifier {
       _registeredAnime = snapshot.docs.map((doc) => doc.id).toSet();
 
       // 一時選択をクリア（登録済みのものは選択状態から外す）
-      _selectedAnime.clear();;
+      _selectedAnime.clear();
 
       _safeNotifyListeners();
       print('ロード処理完了');
