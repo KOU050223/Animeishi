@@ -65,6 +65,8 @@ class _ProfilePageState extends State<ProfilePage>
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
+        if (!mounted) return;
+
         setState(() {
           _userId = user.uid;
           _email = user.email ?? '';
@@ -77,12 +79,22 @@ class _ProfilePageState extends State<ProfilePage>
             .doc(user.uid)
             .get();
 
+        if (!mounted) return; //非同期処理後に再度チェック
+
         if (userDoc.exists) {
+          // selectedGeneresフィールドが存在しない場合は空のリストを設定
+          final data = userDoc.data() as Map<String, dynamic>?;
           setState(() {
-            _selectedGenres =
-                List<String>.from(userDoc['selectedGenres'] ?? []);
+            _selectedGenres = data != null && data.containsKey('selectedGenres')
+              ? List<String>.from(userDoc['selectedGenres'] ?? [])
+              : [];
           });
-        }
+        } else {
+          // ユーザードキュメントが存在しない場合は空のリストを設定
+          setState(() {
+            _selectedGenres = [];
+          });
+        } 
 
         // 統計データを取得
         await _loadStatistics();
@@ -92,6 +104,10 @@ class _ProfilePageState extends State<ProfilePage>
         _slideController.forward();
       } catch (e) {
         print('Failed to load user profile: $e');
+        // エラーが発生した場合も空のリストを設定
+        setState(() {
+          _selectedGenres = [];
+        });
       } finally {
         setState(() {
           _isLoading = false;
