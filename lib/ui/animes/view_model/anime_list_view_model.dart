@@ -13,7 +13,7 @@ class AnimeListViewModel extends ChangeNotifier {
   Set<String> _selectedAnime = {}; // 一時的に選択されたアニメのTIDを保持するセット
   Set<String> _registeredAnime = {}; // 登録済みアニメのTIDを保持するセット
   SortOrder _sortOrder = SortOrder.year; //デフォルトはyear順
-  bool _isAscending = false; //デフォルトは昇順
+  bool _isAscending = false; //デフォルトを降順
   bool _disposed = false; // dispose状態を追跡
   String _searchQuery = ''; // 検索クエリ
 
