@@ -12,8 +12,8 @@ class AnimeListViewModel extends ChangeNotifier {
   bool _isLoading = false;
   Set<String> _selectedAnime = {}; // 一時的に選択されたアニメのTIDを保持するセット
   Set<String> _registeredAnime = {}; // 登録済みアニメのTIDを保持するセット
-  SortOrder _sortOrder = SortOrder.tid; //デフォルトはtid順
-  bool _isAscending = true; //デフォルトは昇順
+  SortOrder _sortOrder = SortOrder.year; //デフォルトはyear順
+  bool _isAscending = false; //デフォルトを降順
   bool _disposed = false; // dispose状態を追跡
   String _searchQuery = ''; // 検索クエリ
 
