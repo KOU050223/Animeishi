@@ -10,7 +10,7 @@ class AnimeViewer {
     this.shortId = this.getUserIdFromUrl();
     
     if (shortId) {
-        this.currentUserId = await this.getUserIdFromShortId(shortId);
+      this.currentUserId = await this.getUserIdFromShortId(this.shortId);
     }
 
     if (this.currentUserId) {
@@ -30,13 +30,11 @@ class AnimeViewer {
   async getUserIdFromShortId(shortId) {
     try {
       // Firestoreで短縮IDに一致するユーザーを検索
-      const usersSnapshot = await db.collection('users').get();
+      const usersSnapshot = await db.collection('users').where('shortId', '==', shortId).get();
       
-      for (const doc of usersSnapshot.docs) {
-        const uid = doc.id;
-        if (uid.startsWith(shortId)) {
-          return uid;
-        }
+      if (!usersSnapshot.empty) {
+        // 最初の一致したユーザーのIDを返す
+        return usersSnapshot.docs[0].id;
       }
       return null;
     } catch (error) {

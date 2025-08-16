@@ -108,13 +108,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 }
 
+String _generateShortId(String uid) {
+    return uid.substring(0, 8);
+  }
 // ホームタブの内容
 class HomeTabPage extends StatelessWidget {
   const HomeTabPage({super.key});
-
-  String _generateShortId(String uid) {
-    return uid.substring(0, 8);
-  }
 
   @override
   Widget build(BuildContext context) {

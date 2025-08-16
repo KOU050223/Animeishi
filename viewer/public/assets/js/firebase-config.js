@@ -1,16 +1,17 @@
 // Firebase設定
 const firebaseConfig = {
-  apiKey: "AIzaSyBUPBJjByvMNR2DoGwtXUYHDQnGh4J5gP8",
-  authDomain: "animeishi-73560.firebaseapp.com",
-  projectId: "animeishi-73560",
-  storageBucket: "animeishi-73560.firebasestorage.app",
-  messagingSenderId: "430615036279",
-  appId: "1:430615036279:web:c124941e308d43d0942172",
-  measurementId: "G-X3XNY74Z4M"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 // Firebase初期化
 firebase.initializeApp(firebaseConfig);
 
 // Firestore初期化
-const db = firebase.firestore();
+window.db = firebase.firestore();
+
