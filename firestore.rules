@@ -18,7 +18,10 @@ service cloud.firestore {
 
       // ユーザーのサブコレクション（selectedAnime, meishies, friends等）
       match /{subcollection}/{document} {
-        allow read: if subcollection == "selectedAnime";
+        allow read: if subcollection == "selectedAnime" || 
+                      subcollection == "favorites" || 
+                      subcollection == "meishies" ||
+                      isOwner(userId);
         allow write: if isOwner(userId);
       }
     }
