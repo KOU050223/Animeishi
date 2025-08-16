@@ -2,16 +2,12 @@
 class AnimeViewer {
   constructor() {
     this.currentUserId = null;
-    this.init();
+    this.initialize();
   }
 
-  async init() {
+  async initialize() {
     // URLからユーザーIDを取得
-    this.shortId = this.getUserIdFromUrl();
-    
-    if (shortId) {
-      this.currentUserId = await this.getUserIdFromShortId(this.shortId);
-    }
+    this.currentUserId = this.getUserIdFromUrl();
 
     if (this.currentUserId) {
       await this.loadUserProfile();
@@ -27,21 +23,6 @@ class AnimeViewer {
     return match ? match[1] : null;
   }
 
-  async getUserIdFromShortId(shortId) {
-    try {
-      // Firestoreで短縮IDに一致するユーザーを検索
-      const usersSnapshot = await db.collection('users').where('shortId', '==', shortId).get();
-      
-      if (!usersSnapshot.empty) {
-        // 最初の一致したユーザーのIDを返す
-        return usersSnapshot.docs[0].id;
-      }
-      return null;
-    } catch (error) {
-      console.error('ユーザーID取得エラー:', error);
-      return null;
-    }
-  }
 
   async loadUserProfile() {
     try {
@@ -65,8 +46,6 @@ class AnimeViewer {
         .collection('users')
         .doc(this.currentUserId)
         .collection('selectedAnime')
-        .orderBy('firstyear', 'desc')
-        .orderBy('firstmonth', 'desc')
         .get();
 
       const animeList = [];
@@ -87,9 +66,9 @@ class AnimeViewer {
       profileSection.innerHTML = `
         <div class="profile-card">
           <div class="profile-avatar">
-            <img src="${userData.profileImageUrl || '/assets/images/default-avatar.png'}" 
+            <img src="${userData.profileImageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0yMCA3NUMxMCA3NSA1IDgwIDUgOTBIMTBDMTAgODAgMTUgNzUgMjAgNzVIMjBaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo='}" 
                  alt="プロフィール画像" 
-                 onerror="this.src='/assets/images/default-avatar.png'">
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzUiIHI9IjE1IiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik0yMCA3NUMxMCA3NSA1IDgwIDUgOTBIMTBDMTAgODAgMTUgNzUgMjAgNzVIMjBaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo='">
           </div>
           <div class="profile-info">
             <h2>${userData.username || '名前未設定'}</h2>
@@ -136,9 +115,9 @@ class AnimeViewer {
     return `
       <div class="anime-card">
         <div class="anime-image">
-          <img src="${anime.imageUrl || '/assets/images/default-anime.png'}" 
+          <img src="${anime.imageUrl || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iNzUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlCOUJBQCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QW5pbWU8L3RleHQ+Cjwvc3ZnPgo='}" 
                alt="${anime.title}" 
-               onerror="this.src='/assets/images/default-anime.png'">
+               onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iNzUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlCOUJBQCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QW5pbWU8L3RleHQ+Cjwvc3ZnPgo='">
         </div>
         <div class="anime-info">
           <h3 class="anime-title">${anime.title || 'タイトル不明'}</h3>

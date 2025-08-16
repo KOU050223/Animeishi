@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "target": "viewer-site",
     "public": "public",
     "ignore": [
       "firebase.json",

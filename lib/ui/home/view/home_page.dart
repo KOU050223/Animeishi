@@ -110,9 +110,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 }
 
-String _generateShortId(String uid) {
-    return uid.substring(0, 8);
-  }
 // ホームタブの内容
 class HomeTabPage extends StatefulWidget {
   const HomeTabPage({super.key});
@@ -214,7 +211,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
     final User? user = FirebaseAuth.instance.currentUser;
 
     final String qrData = user?.uid != null 
-        ? "https://animeishi-73560.web.app/user/${_generateShortId(user!.uid)}"
+        ? "https://animeishi-viewer.web.app/user/${user!.uid}"
         : "No UID";
 
     final String? currentUserId = user?.uid;
