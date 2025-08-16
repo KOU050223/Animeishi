@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:animeishi/ui/components/web_firebase_image.dart';
 import 'package:animeishi/ui/home/constants/meishi_constants.dart';
+import 'package:animeishi/ui/home/view/meishi_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,7 +29,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late PageController _pageController;
 
   final User? _user = FirebaseAuth.instance.currentUser;
-  String get qrData => _user?.uid ?? 'No UID';
+  String get qrData => _user?.uid != null
+      ? 'https://animeishi-viewer.web.app/user/${_user!.uid}'
+      : 'No UID';
 
   // 各ページのウィジェットリスト（ページを保持してスクロール位置などを維持）
   final List<Widget> _pages = [
@@ -152,8 +155,10 @@ class _HomeTabPageState extends State<HomeTabPage> {
     });
 
     try {
-      // QRデータをユーザーIDのみに変更
-      final qrData = _currentUser!.uid;
+      // QRデータを統一されたURL形式に変更
+      final qrData = _currentUser?.uid != null
+          ? 'https://animeishi-viewer.web.app/user/${_currentUser!.uid}'
+          : 'No UID';
       final imageData = await QRImageService.generateQRImage(
         qrData,
         size: 200.0,
@@ -353,42 +358,70 @@ class _HomeTabPageState extends State<HomeTabPage> {
     String? storagePath = _extractStoragePathFromURL(imageURL);
 
     if (storagePath != null) {
-      // 新しいWebFirebaseImageコンポーネントを使用
-      return WebFirebaseImage(
-        imagePath: storagePath,
-        width: MeishiConstants.imageWidth,
-        height: MeishiConstants.imageHeight,
-        fit: BoxFit.cover,
-        placeholder: Container(
-          width: MeishiConstants.imageWidth,
-          height: MeishiConstants.imageHeight,
+      // 新しいWebFirebaseImageコンポーネントを使用（タップ可能）
+      return GestureDetector(
+        onTap: () => _navigateToMeishiDetail(imageURL, storagePath),
+        child: Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
             borderRadius: BorderRadius.circular(MeishiConstants.borderRadius),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(strokeWidth: 2),
-                const SizedBox(height: 8),
-                Text(
-                  '名刺画像読み込み中...',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 11,
-                  ),
+          child: WebFirebaseImage(
+            imagePath: storagePath,
+            width: MeishiConstants.imageWidth,
+            height: MeishiConstants.imageHeight,
+            fit: BoxFit.cover,
+            placeholder: Container(
+              width: MeishiConstants.imageWidth,
+              height: MeishiConstants.imageHeight,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius:
+                    BorderRadius.circular(MeishiConstants.borderRadius),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(strokeWidth: 2),
+                    const SizedBox(height: 8),
+                    Text(
+                      '名刺画像読み込み中...',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
+            errorWidget: _buildWebPlaceholder(),
           ),
         ),
-        errorWidget: _buildWebPlaceholder(),
       );
     } else {
       // パス抽出に失敗した場合はプレースホルダー表示
       return _buildWebPlaceholder();
     }
+  }
+
+  /// 名刺詳細ページに遷移
+  void _navigateToMeishiDetail(String imageURL, String storagePath) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MeishiDetailPage(
+          imageURL: imageURL,
+          storagePath: storagePath,
+        ),
+      ),
+    );
   }
 
   /// Firebase Storage URLからパスを抽出
