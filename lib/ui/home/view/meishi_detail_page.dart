@@ -208,7 +208,7 @@ class _MeishiDetailPageState extends State<MeishiDetailPage> {
             right: 16,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.5), // 半透明の背景
+                color: Colors.black.withOpacity(0.5), // 半透明の背景
                 shape: BoxShape.circle,
               ),
               child: IconButton(
