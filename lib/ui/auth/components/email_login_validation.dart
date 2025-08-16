@@ -35,4 +35,4 @@ class EmailLoginValidation {
         return 'ログインに失敗しました';
     }
   }
-} 
+}

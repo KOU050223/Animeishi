@@ -7,14 +7,11 @@ class ScanDataService {
   /// ユーザーデータを取得する
   static Future<Map<String, dynamic>?> getUserData(String userId) async {
     try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(userId)
-          .get();
-      
+      final doc = await _firestore.collection('users').doc(userId).get();
+
       print('ユーザーデータ取得: $userId');
       print(doc);
-      
+
       if (doc.exists) {
         return doc.data();
       } else {
@@ -44,12 +41,13 @@ class ScanDataService {
   }
 
   /// 取得したTIDに基づいて、アニメ詳細情報を取得する
-  static Future<List<Map<String, dynamic>>> getAnimeDetails(Set<String> tids) async {
+  static Future<List<Map<String, dynamic>>> getAnimeDetails(
+      Set<String> tids) async {
     List<Map<String, dynamic>> animeList = [];
     try {
       // "titles" コレクションから全件取得（件数が多い場合は where クエリなどで絞ることを検討）
       final snapshot = await _firestore.collection('titles').get();
-      
+
       for (var doc in snapshot.docs) {
         if (tids.contains(doc.id)) {
           // 'Title' フィールドにアニメの名前が入っていると仮定
@@ -69,7 +67,7 @@ class ScanDataService {
   static Future<ScanDataResult> fetchUserData(String userId) async {
     try {
       final userData = await getUserData(userId);
-      
+
       if (userData == null) {
         return ScanDataResult(
           success: false,
@@ -79,7 +77,7 @@ class ScanDataService {
 
       final tids = await getSelectedAnimeTIDs(userId);
       final animeDetails = await getAnimeDetails(tids);
-      
+
       return ScanDataResult(
         success: true,
         userData: userData,
@@ -100,13 +98,22 @@ class ScanDataService {
     if (qrValue == null || qrValue.trim().isEmpty) {
       return null;
     }
-    
-    // 基本的な検証（必要に応じて拡張）
-    if (qrValue.length < 3) {
-      return null;
+
+    final trimmedValue = qrValue.trim();
+
+    // URLフォーマットの場合: https://animeishi-viewer.web.app/user/USER_ID
+    if (trimmedValue.startsWith('https://animeishi-viewer.web.app/user/')) {
+      final userId = trimmedValue
+          .substring('https://animeishi-viewer.web.app/user/'.length);
+      return userId.isNotEmpty ? userId : null;
     }
-    
-    return qrValue.trim();
+
+    // 直接ユーザーIDが渡された場合（従来の動作を維持）
+    if (trimmedValue.length >= 3) {
+      return trimmedValue;
+    }
+
+    return null;
   }
 
   /// ユーザーデータの基本情報を整形する
@@ -119,6 +126,25 @@ class ScanDataService {
       bio: userData['bio'] ?? '',
       favoriteQuote: userData['favoriteQuote'] ?? '',
     );
+  }
+
+  /// analysisCommentを取得
+  static Future<String?> getAnalysisComment(
+      String currentUserId, String friendUserId) async {
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .collection('meishies')
+          .doc(friendUserId)
+          .get();
+      if (doc.exists) {
+        return doc.data()?['analysisComment'] as String?;
+      }
+    } catch (e) {
+      print('analysisComment取得エラー: $e');
+    }
+    return null;
   }
 }
 
@@ -164,4 +190,4 @@ class UserProfile {
     required this.bio,
     required this.favoriteQuote,
   });
-} 
+}

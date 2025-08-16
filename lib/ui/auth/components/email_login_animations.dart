@@ -27,17 +27,20 @@ class AnimationPainter extends CustomPainter {
 class Particle {
   final Color color = _getRandomColor();
   final double radius = _getRandomVal(2, 6);
-  
+
   double dx = _getRandomVal(-0.2, 0.2);
   double dy = _getRandomVal(-0.2, 0.2);
-  
+
   late double x = _getRandomVal(0, 1000);
   late double y = _getRandomVal(0, 800);
   late Offset pos = Offset(x, y);
 
   void moveParticle() {
     Offset nextPos = pos + Offset(dx, dy);
-    if (nextPos.dx < 0 || nextPos.dx > 1000 || nextPos.dy < 0 || nextPos.dy > 800) {
+    if (nextPos.dx < 0 ||
+        nextPos.dx > 1000 ||
+        nextPos.dy < 0 ||
+        nextPos.dy > 800) {
       dx = -dx;
       dy = -dy;
       nextPos = pos + Offset(dx, dy);
@@ -61,4 +64,4 @@ class Particle {
     final rnd = Random();
     return rnd.nextDouble() * (max - min) + min;
   }
-} 
+}

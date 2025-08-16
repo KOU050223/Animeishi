@@ -6,7 +6,7 @@ class WatchAnimeAnimationController {
   late AnimationController slideController;
   late AnimationController particleController;
   late AnimationController favoriteController;
-  
+
   late Animation<double> fadeAnimation;
   late Animation<Offset> slideAnimation;
   late Animation<double> favoriteAnimation;
@@ -17,7 +17,7 @@ class WatchAnimeAnimationController {
       duration: const Duration(milliseconds: 1000),
       vsync: vsync,
     );
-    
+
     slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: vsync,
@@ -32,7 +32,7 @@ class WatchAnimeAnimationController {
       duration: const Duration(milliseconds: 300),
       vsync: vsync,
     );
-    
+
     // アニメーションの設定
     fadeAnimation = Tween<double>(
       begin: 0.0,
@@ -41,7 +41,7 @@ class WatchAnimeAnimationController {
       parent: fadeController,
       curve: Curves.easeOut,
     ));
-    
+
     slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -147,4 +147,4 @@ class AnimatedFavoriteIcon extends StatelessWidget {
       },
     );
   }
-} 
+}

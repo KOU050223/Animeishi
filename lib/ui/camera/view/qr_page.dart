@@ -114,10 +114,21 @@ class _ScannerWidgetState extends State<ScannerWidget>
   /// QRコードからユーザーIDを抽出
   String? _extractUserIdFromQR(String qrData) {
     // QRコードのデータ形式に応じて調整
-    // 例: "animeishi://user/{userId}" 形式の場合
+    // 例: "https://animeishi-viewer.web.app/user/{userId}" 形式の場合
     final uri = Uri.tryParse(qrData);
-    if (uri?.scheme == 'animeishi' && uri?.pathSegments.length == 2) {
-      if (uri!.pathSegments[0] == 'user') {
+    if (uri != null) {
+      // HTTPS URLの場合
+      if (uri.scheme == 'https' &&
+          uri.host == 'animeishi-viewer.web.app' &&
+          uri.pathSegments.length == 2 &&
+          uri.pathSegments[0] == 'user') {
+        return uri.pathSegments[1];
+      }
+
+      // カスタムスキーム animeishi://user/{userId} の場合
+      if (uri.scheme == 'animeishi' &&
+          uri.pathSegments.length == 2 &&
+          uri.pathSegments[0] == 'user') {
         return uri.pathSegments[1];
       }
     }
@@ -159,13 +170,13 @@ class _ScannerWidgetState extends State<ScannerWidget>
   @override
   void initState() {
     super.initState();
-    
+
     // スキャンライン用のアニメーション
     _animationController = AnimationController(
       duration: Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _scanAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -173,13 +184,13 @@ class _ScannerWidgetState extends State<ScannerWidget>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     // パルス用のアニメーション
     _pulseController = AnimationController(
       duration: Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.1,
@@ -199,7 +210,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -207,13 +218,13 @@ class _ScannerWidgetState extends State<ScannerWidget>
       parent: _fadeController,
       curve: Curves.easeOut,
     ));
-    
+
     // アニメーション開始
     _animationController.repeat(reverse: true);
     _pulseController.repeat(reverse: true);
     _fadeController.forward();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -258,7 +269,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
                 );
               },
             ),
-            
+
             // カメラプレビュー（中央のスキャンエリアのみ）
             Center(
               child: Container(
@@ -279,72 +290,79 @@ class _ScannerWidgetState extends State<ScannerWidget>
                   child: MobileScanner(
                     controller: controller,
                     fit: BoxFit.cover,
-                    onDetect: _isScanning ? (scandata) {
-                      // バーコードリストが空でないかチェック
-                      if (scandata.barcodes.isEmpty) {
-                        print('バーコードが検出されませんでした');
-                        return;
-                      }
-                      
-                      // 重複検出を防ぐクールダウン（1秒）
-                      final now = DateTime.now();
-                      if (_lastScanTime != null && 
-                          now.difference(_lastScanTime!).inMilliseconds < 1000) {
-                        return;
-                      }
-                      _lastScanTime = now;
-                      
-                      final scannedUserId = scandata.barcodes.first.rawValue;
-                      print('スキャン結果: $scannedUserId');
-                      
-                      if (scannedUserId != null && scannedUserId.isNotEmpty) {
-                        setState(() {
-                          _isScanning = false;
-                          HapticFeedback.mediumImpact(); // バイブレーション
-                        });
-                        
-                        // カメラを安全に停止
-                        try {
-                          controller.stop();
-                        } catch (e) {
-                          print('カメラ停止エラー: $e');
-                        }
-                        
-                        saveUserIdToFirestore(scannedUserId);
-                        
-                        // 少し遅延してから画面遷移
-                        Future.delayed(Duration(milliseconds: 500), () {
-                          Navigator.of(context).pushReplacement(
-                            PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => 
-                                  ScanDataWidget(scandata: scandata),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                return SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(1.0, 0.0),
-                                    end: Offset.zero,
-                                  ).animate(animation),
-                                  child: child,
+                    onDetect: _isScanning
+                        ? (scandata) {
+                            // バーコードリストが空でないかチェック
+                            if (scandata.barcodes.isEmpty) {
+                              print('バーコードが検出されませんでした');
+                              return;
+                            }
+
+                            // 重複検出を防ぐクールダウン（1秒）
+                            final now = DateTime.now();
+                            if (_lastScanTime != null &&
+                                now.difference(_lastScanTime!).inMilliseconds <
+                                    1000) {
+                              return;
+                            }
+                            _lastScanTime = now;
+
+                            final scannedUserId =
+                                scandata.barcodes.first.rawValue;
+                            print('スキャン結果: $scannedUserId');
+
+                            if (scannedUserId != null &&
+                                scannedUserId.isNotEmpty) {
+                              setState(() {
+                                _isScanning = false;
+                                HapticFeedback.mediumImpact(); // バイブレーション
+                              });
+
+                              // カメラを安全に停止
+                              try {
+                                controller.stop();
+                              } catch (e) {
+                                print('カメラ停止エラー: $e');
+                              }
+
+                              saveUserIdToFirestore(scannedUserId);
+
+                              // 少し遅延してから画面遷移
+                              Future.delayed(Duration(milliseconds: 500), () {
+                                Navigator.of(context).pushReplacement(
+                                  PageRouteBuilder(
+                                    pageBuilder: (context, animation,
+                                            secondaryAnimation) =>
+                                        ScanDataWidget(scandata: scandata),
+                                    transitionsBuilder: (context, animation,
+                                        secondaryAnimation, child) {
+                                      return SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(1.0, 0.0),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: child,
+                                      );
+                                    },
+                                  ),
                                 );
-                              },
-                            ),
-                          );
-                        });
-                      } else {
-                        print('無効なQRコードです: $scannedUserId');
-                      }
-                    } : null,
+                              });
+                            } else {
+                              print('無効なQRコードです: $scannedUserId');
+                            }
+                          }
+                        : null,
                   ),
                 ),
               ),
             ),
-            
+
             // ヘッダー
             _buildModernHeader(context),
-            
+
             // スキャンエリアのオーバーレイ
             _buildModernScanArea(),
-            
+
             // 底部のコントロール
             _buildModernBottomControls(),
           ],
@@ -352,7 +370,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
       ),
     );
   }
-  
+
   Widget _buildModernHeader(BuildContext context) {
     return Positioned(
       top: 0,
@@ -405,8 +423,11 @@ class _ScannerWidgetState extends State<ScannerWidget>
                           Navigator.pushReplacement(
                             context,
                             PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      HomePage(),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
                                 return SlideTransition(
                                   position: Tween<Offset>(
                                     begin: const Offset(-1.0, 0.0),
@@ -426,7 +447,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
                       ),
                     ),
                   ),
-                  
+
                   // タイトル部分
                   Expanded(
                     child: Center(
@@ -434,7 +455,8 @@ class _ScannerWidgetState extends State<ScannerWidget>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.8),
                               borderRadius: BorderRadius.circular(20),
@@ -457,7 +479,10 @@ class _ScannerWidgetState extends State<ScannerWidget>
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                                      colors: [
+                                        Color(0xFF667EEA),
+                                        Color(0xFF764BA2)
+                                      ],
                                     ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -492,7 +517,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(width: 48), // バランス調整
                 ],
               ),
@@ -502,7 +527,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
       ),
     );
   }
-  
+
   Widget _buildModernScanArea() {
     return Center(
       child: FadeTransition(
@@ -555,14 +580,23 @@ class _ScannerWidgetState extends State<ScannerWidget>
                                     ],
                                   ),
                                   borderRadius: BorderRadius.only(
-                                    topLeft: index == 0 ? const Radius.circular(25) : Radius.zero,
-                                    topRight: index == 1 ? const Radius.circular(25) : Radius.zero,
-                                    bottomLeft: index == 2 ? const Radius.circular(25) : Radius.zero,
-                                    bottomRight: index == 3 ? const Radius.circular(25) : Radius.zero,
+                                    topLeft: index == 0
+                                        ? const Radius.circular(25)
+                                        : Radius.zero,
+                                    topRight: index == 1
+                                        ? const Radius.circular(25)
+                                        : Radius.zero,
+                                    bottomLeft: index == 2
+                                        ? const Radius.circular(25)
+                                        : Radius.zero,
+                                    bottomRight: index == 3
+                                        ? const Radius.circular(25)
+                                        : Radius.zero,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF667EEA).withOpacity(0.4),
+                                      color: const Color(0xFF667EEA)
+                                          .withOpacity(0.4),
                                       blurRadius: 15,
                                       offset: const Offset(0, 5),
                                     ),
@@ -572,16 +606,36 @@ class _ScannerWidgetState extends State<ScannerWidget>
                                   margin: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
                                     border: Border(
-                                      top: index < 2 ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
-                                      bottom: index >= 2 ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
-                                      left: index % 2 == 0 ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
-                                      right: index % 2 == 1 ? const BorderSide(color: Colors.white, width: 3) : BorderSide.none,
+                                      top: index < 2
+                                          ? const BorderSide(
+                                              color: Colors.white, width: 3)
+                                          : BorderSide.none,
+                                      bottom: index >= 2
+                                          ? const BorderSide(
+                                              color: Colors.white, width: 3)
+                                          : BorderSide.none,
+                                      left: index % 2 == 0
+                                          ? const BorderSide(
+                                              color: Colors.white, width: 3)
+                                          : BorderSide.none,
+                                      right: index % 2 == 1
+                                          ? const BorderSide(
+                                              color: Colors.white, width: 3)
+                                          : BorderSide.none,
                                     ),
                                     borderRadius: BorderRadius.only(
-                                      topLeft: index == 0 ? const Radius.circular(20) : Radius.zero,
-                                      topRight: index == 1 ? const Radius.circular(20) : Radius.zero,
-                                      bottomLeft: index == 2 ? const Radius.circular(20) : Radius.zero,
-                                      bottomRight: index == 3 ? const Radius.circular(20) : Radius.zero,
+                                      topLeft: index == 0
+                                          ? const Radius.circular(20)
+                                          : Radius.zero,
+                                      topRight: index == 1
+                                          ? const Radius.circular(20)
+                                          : Radius.zero,
+                                      bottomLeft: index == 2
+                                          ? const Radius.circular(20)
+                                          : Radius.zero,
+                                      bottomRight: index == 3
+                                          ? const Radius.circular(20)
+                                          : Radius.zero,
                                     ),
                                   ),
                                 ),
@@ -591,7 +645,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
                         ),
                       );
                     }),
-                    
+
                     // スキャンライン
                     AnimatedBuilder(
                       animation: _scanAnimation,
@@ -614,7 +668,8 @@ class _ScannerWidgetState extends State<ScannerWidget>
                               borderRadius: BorderRadius.circular(3),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF667EEA).withOpacity(0.6),
+                                  color:
+                                      const Color(0xFF667EEA).withOpacity(0.6),
                                   blurRadius: 12,
                                   spreadRadius: 2,
                                 ),
@@ -633,7 +688,7 @@ class _ScannerWidgetState extends State<ScannerWidget>
       ),
     );
   }
-  
+
   Widget _buildModernBottomControls() {
     return Positioned(
       bottom: 0,
@@ -662,7 +717,8 @@ class _ScannerWidgetState extends State<ScannerWidget>
                 children: [
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.8),
                       borderRadius: BorderRadius.circular(25),
@@ -729,32 +785,32 @@ class _ScannerWidgetState extends State<ScannerWidget>
 
 class QRParticlePainter extends CustomPainter {
   final double animationValue;
-  
+
   QRParticlePainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     final random = math.Random(42);
-    
+
     for (int i = 0; i < 30; i++) {
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height;
       final offset = (animationValue * 2 * math.pi + i) % (2 * math.pi);
-      
+
       final animatedX = x + math.sin(offset) * 10;
       final animatedY = y + math.cos(offset) * 10;
-      
+
       final opacity = (math.sin(animationValue * 2 * math.pi + i) + 1) / 2;
       final radius = 1 + math.sin(animationValue * 4 * math.pi + i) * 1;
-      
+
       paint.color = [
         const Color(0xFFE8D5FF).withOpacity(opacity * 0.6),
         const Color(0xFFB8E6FF).withOpacity(opacity * 0.6),
         const Color(0xFFFFD6E8).withOpacity(opacity * 0.6),
         const Color(0xFFE8FFD6).withOpacity(opacity * 0.6),
       ][i % 4];
-      
+
       canvas.drawCircle(
         Offset(animatedX, animatedY),
         radius,

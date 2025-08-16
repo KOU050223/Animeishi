@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../services/anime_image_service.dart';
 import '../services/comment_parser_service.dart';
 
 /// アニメ詳細画面のUI構築ヘルパークラス
@@ -38,21 +40,22 @@ class AnimeDetailWidgets {
       ),
       child: Column(
         children: [
-          // アニメアイコンとお気に入りバッジ
-          _buildAnimeIconWithFavoriteBadge(isFavorite, favoriteAnimationWidget),
-          
+          // アニメ画像とお気に入りバッジ
+          _buildAnimeImageWithFavoriteBadge(
+              anime, isFavorite, favoriteAnimationWidget),
+
           const SizedBox(height: 20),
-          
+
           // タイトル
           _buildAnimeTitle(anime['title']),
-          
+
           const SizedBox(height: 12),
-          
+
           // 読み仮名
           _buildAnimeTitleYomi(anime['titleyomi']),
-          
+
           const SizedBox(height: 16),
-          
+
           // お気に入りボタン
           _buildFavoriteButton(
             isFavorite: isFavorite,
@@ -99,14 +102,14 @@ class AnimeDetailWidgets {
         children: [
           // セクションヘッダー
           _buildSectionHeader('詳細情報', Icons.info_outline),
-          
+
           const SizedBox(height: 20),
-          
+
           // 基本情報
           _buildBasicInfo(anime),
-          
+
           const SizedBox(height: 24),
-          
+
           // コメント詳細
           _buildCommentSection(anime['comment']),
         ],
@@ -114,33 +117,109 @@ class AnimeDetailWidgets {
     );
   }
 
-  /// アニメアイコンとお気に入りバッジの構築
-  static Widget _buildAnimeIconWithFavoriteBadge(bool isFavorite, Widget? favoriteAnimationWidget) {
+  /// アニメ画像とお気に入りバッジの構築
+  static Widget _buildAnimeImageWithFavoriteBadge(Map<String, dynamic> anime,
+      bool isFavorite, Widget? favoriteAnimationWidget) {
     return Stack(
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-            ),
-            borderRadius: BorderRadius.circular(50),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF667EEA).withOpacity(0.4),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.play_circle_filled,
-            color: Colors.white,
-            size: 50,
-          ),
+        FutureBuilder<String?>(
+          future: AnimeImageService.getImageUrl(anime['tid']?.toString() ?? ''),
+          builder: (context, snapshot) {
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final maxWidth = constraints.maxWidth.isInfinite
+                    ? 400.0
+                    : constraints.maxWidth;
+                final containerWidth = maxWidth > 400 ? 400.0 : maxWidth;
+                final containerHeight = containerWidth * 4 / 3; // 3:4の縦長比率
+
+                return Container(
+                  width: containerWidth,
+                  height: containerHeight,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF667EEA).withOpacity(0.4),
+                        blurRadius: 25,
+                        offset: const Offset(0, 15),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(25),
+                    child: snapshot.connectionState == ConnectionState.waiting
+                        ? Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                              ),
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 3,
+                              ),
+                            ),
+                          )
+                        : snapshot.data != null
+                            ? CachedNetworkImage(
+                                imageUrl: snapshot.data!,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xFF667EEA),
+                                        Color(0xFF764BA2)
+                                      ],
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 3,
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xFF667EEA),
+                                        Color(0xFF764BA2)
+                                      ],
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.play_circle_filled,
+                                    color: Colors.white,
+                                    size: 50,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Color(0xFF667EEA),
+                                      Color(0xFF764BA2)
+                                    ],
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.play_circle_filled,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                              ),
+                  ),
+                );
+              },
+            );
+          },
         ),
-        
+
         // お気に入りバッジ
         if (isFavorite && favoriteAnimationWidget != null)
           Positioned(
@@ -214,11 +293,12 @@ class AnimeDetailWidgets {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : favoriteAnimationWidget ?? Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: Colors.white,
-                size: 20,
-              ),
+            : favoriteAnimationWidget ??
+                Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.white,
+                  size: 20,
+                ),
         label: Text(
           isFavorite ? 'お気に入り登録済み' : 'お気に入りに追加',
           style: const TextStyle(
@@ -235,7 +315,8 @@ class AnimeDetailWidgets {
             borderRadius: BorderRadius.circular(15),
           ),
           elevation: 5,
-          shadowColor: (isFavorite ? Colors.pink : Colors.grey).withOpacity(0.3),
+          shadowColor:
+              (isFavorite ? Colors.pink : Colors.grey).withOpacity(0.3),
         ),
       ),
     );
@@ -341,7 +422,7 @@ class AnimeDetailWidgets {
     }
 
     final sections = CommentParserService.parseComment(comment);
-    
+
     if (sections.isEmpty) {
       return _buildEmptyCommentState();
     }
@@ -409,4 +490,4 @@ class AnimeDetailWidgets {
       ),
     );
   }
-} 
+}

@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 import '../view_model/anime_list_view_model.dart';
-import 'package:animeishi/model/factory/anime_list_factory.dart';
 
 class AnimeListHeader extends StatefulWidget {
   final AnimeListViewModel viewModel;
   final VoidCallback onFetchFromServer;
-  final VoidCallback onSaveSelected;
 
   const AnimeListHeader({
     Key? key,
     required this.viewModel,
     required this.onFetchFromServer,
-    required this.onSaveSelected,
   }) : super(key: key);
 
   @override
@@ -60,8 +57,6 @@ class _AnimeListHeaderState extends State<AnimeListHeader> {
             _buildSortSection(),
             SizedBox(height: 16),
             _buildFetchButton(),
-            SizedBox(height: 16),
-            _buildActionButtons(),
           ],
         ),
       ),
@@ -234,7 +229,9 @@ class _AnimeListHeaderState extends State<AnimeListHeader> {
                 child: Padding(
                   padding: EdgeInsets.all(8),
                   child: Icon(
-                    widget.viewModel.isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                    widget.viewModel.isAscending
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -287,7 +284,8 @@ class _AnimeListHeaderState extends State<AnimeListHeader> {
                 ),
                 SizedBox(width: 12),
               ] else ...[
-                Icon(Icons.cloud_download_outlined, color: Colors.white, size: 20),
+                Icon(Icons.cloud_download_outlined,
+                    color: Colors.white, size: 20),
                 SizedBox(width: 12),
               ],
               Text(
@@ -296,60 +294,6 @@ class _AnimeListHeaderState extends State<AnimeListHeader> {
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    final hasSelected = widget.viewModel.selectedAnime.isNotEmpty;
-    
-    return Container(
-      width: double.infinity,
-      height: 50,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: hasSelected
-              ? [Color(0xFF667eea), Color(0xFF764ba2)]
-              : [Colors.grey.shade300, Colors.grey.shade400],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: hasSelected
-                ? Color(0xFF667eea).withOpacity(0.3)
-                : Colors.grey.withOpacity(0.2),
-            blurRadius: 12,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: hasSelected ? widget.onSaveSelected : null,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.bookmark_add,
-                color: hasSelected ? Colors.white : Colors.grey.shade600,
-                size: 20,
-              ),
-              SizedBox(width: 12),
-              Text(
-                hasSelected
-                    ? '登録 (${widget.viewModel.selectedAnime.length}件)'
-                    : 'アニメを選択してください',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: hasSelected ? Colors.white : Colors.grey.shade600,
                 ),
               ),
             ],

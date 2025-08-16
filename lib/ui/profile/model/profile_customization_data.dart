@@ -202,4 +202,4 @@ class ProfileCustomization {
       selectedStickers: List<Map<String, dynamic>>.from(json['stickers'] ?? []),
     );
   }
-} 
+}

@@ -7,7 +7,7 @@ class ScanResultAnimationController {
   late AnimationController slideController;
   late AnimationController celebrationController;
   late AnimationController particleController;
-  
+
   late Animation<double> fadeAnimation;
   late Animation<Offset> slideAnimation;
   late Animation<double> celebrationAnimation;
@@ -17,12 +17,12 @@ class ScanResultAnimationController {
   void initialize(TickerProvider vsync) {
     // 成功時のバイブレーション
     HapticFeedback.lightImpact();
-    
+
     fadeController = AnimationController(
       duration: Duration(milliseconds: 1000),
       vsync: vsync,
     );
-    
+
     slideController = AnimationController(
       duration: Duration(milliseconds: 800),
       vsync: vsync,
@@ -37,7 +37,7 @@ class ScanResultAnimationController {
       duration: Duration(seconds: 10),
       vsync: vsync,
     )..repeat();
-    
+
     // アニメーションの設定
     fadeAnimation = Tween<double>(
       begin: 0.0,
@@ -46,7 +46,7 @@ class ScanResultAnimationController {
       parent: fadeController,
       curve: Curves.easeOut,
     ));
-    
+
     slideAnimation = Tween<Offset>(
       begin: Offset(0, 0.5),
       end: Offset.zero,
@@ -76,7 +76,7 @@ class ScanResultAnimationController {
   void startAnimations() {
     fadeController.forward();
     slideController.forward();
-    
+
     // 少し遅れてお祝いアニメーション開始
     Future.delayed(Duration(milliseconds: 300), () {
       celebrationController.forward();
@@ -155,4 +155,4 @@ class CelebrationAnimatedWidget extends StatelessWidget {
       },
     );
   }
-} 
+}

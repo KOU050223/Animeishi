@@ -27,24 +27,25 @@ class ProfileEditPage extends StatefulWidget {
   _ProfileEditPageState createState() => _ProfileEditPageState();
 }
 
-class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderStateMixin {
+class _ProfileEditPageState extends State<ProfileEditPage>
+    with TickerProviderStateMixin {
   late String _username;
   late List<String> _selectedGenres;
   late String _email;
-  
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _quoteController = TextEditingController();
-  
+
   // カスタマイゼーション設定
   ProfileCustomization _customization = ProfileCustomization();
-  
+
   // 画像関連
   File? _selectedImage;
   Uint8List? _webImage;
   bool _isUploading = false;
-  
+
   // アニメーション
   late AnimationController _fadeController;
   late AnimationController _slideController;
@@ -65,7 +66,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
     _email = widget.email;
     _emailController.text = _email;
     _usernameController.text = _username;
-    
+
     // リアルタイム更新リスナー
     _usernameController.addListener(() => setState(() {}));
     _bioController.addListener(() => setState(() {}));
@@ -81,15 +82,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
       duration: Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
     _slideAnimation = Tween<Offset>(
       begin: Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
-    
+    ).animate(
+        CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
+
     _fadeController.forward();
     _slideController.forward();
   }
@@ -118,7 +120,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
 
   Future<void> _handleImageSelection(ImageSource source) async {
     final result = await ProfileImageService.pickImage(source);
-    
+
     if (result.success) {
       setState(() {
         _selectedImage = result.selectedImage;
@@ -127,7 +129,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
     } else if (result.errorMessage != null) {
       ProfileValidationService.showErrorSnackBar(context, result.errorMessage!);
       if (kIsWeb) {
-        ProfileImageService.showWebImagePickerDialog(context, () => _handleImageSelection(source));
+        ProfileImageService.showWebImagePickerDialog(
+            context, () => _handleImageSelection(source));
       }
     }
   }
@@ -192,8 +195,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final currentTheme = ProfileCustomizationData.colorThemes[_customization.selectedTheme];
-    
+    final currentTheme =
+        ProfileCustomizationData.colorThemes[_customization.selectedTheme];
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -277,7 +281,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
       children: [
         Center(
           child: GestureDetector(
-            onTap: () => ProfileImageService.showImageSourceDialog(context, _handleImageSelection),
+            onTap: () => ProfileImageService.showImageSourceDialog(
+                context, _handleImageSelection),
             child: Container(
               width: 120,
               height: 120,
@@ -379,8 +384,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
                   }
                 });
               },
-              selectedColor: ProfileCustomizationData.colorThemes[_customization.selectedTheme]['accent'].withOpacity(0.3),
-              checkmarkColor: ProfileCustomizationData.colorThemes[_customization.selectedTheme]['accent'],
+              selectedColor: ProfileCustomizationData
+                  .colorThemes[_customization.selectedTheme]['accent']
+                  .withOpacity(0.3),
+              checkmarkColor: ProfileCustomizationData
+                  .colorThemes[_customization.selectedTheme]['accent'],
             );
           }).toList(),
         ),
@@ -422,17 +430,20 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
             itemBuilder: (context, index) {
               final theme = ProfileCustomizationData.colorThemes[index];
               final isSelected = _customization.selectedTheme == index;
-              
+
               return GestureDetector(
                 onTap: () => setState(() {
-                  _customization = _customization.copyWith(selectedTheme: index);
+                  _customization =
+                      _customization.copyWith(selectedTheme: index);
                 }),
                 child: Container(
                   width: 60,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: theme['gradient']),
                     borderRadius: BorderRadius.circular(12),
-                    border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+                    border: isSelected
+                        ? Border.all(color: Colors.white, width: 3)
+                        : null,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.2),
@@ -475,25 +486,32 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
             itemBuilder: (context, index) {
               final icon = ProfileCustomizationData.avatarIcons[index];
               final isSelected = _customization.selectedAvatar == index;
-              
+
               return GestureDetector(
                 onTap: () => setState(() {
-                  _customization = _customization.copyWith(selectedAvatar: index);
+                  _customization =
+                      _customization.copyWith(selectedAvatar: index);
                 }),
                 child: Container(
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: isSelected ? ProfileCustomizationData.editorAccentColor : Colors.white,
+                    color: isSelected
+                        ? ProfileCustomizationData.editorAccentColor
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? ProfileCustomizationData.editorAccentColor : Colors.grey[300]!,
+                      color: isSelected
+                          ? ProfileCustomizationData.editorAccentColor
+                          : Colors.grey[300]!,
                       width: 2,
                     ),
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? Colors.white : ProfileCustomizationData.editorAccentColor,
+                    color: isSelected
+                        ? Colors.white
+                        : ProfileCustomizationData.editorAccentColor,
                     size: 24,
                   ),
                 ),
@@ -590,7 +608,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [ProfileCustomizationData.editorPrimaryColor, ProfileCustomizationData.editorSecondaryColor],
+                    colors: [
+                      ProfileCustomizationData.editorPrimaryColor,
+                      ProfileCustomizationData.editorSecondaryColor
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -636,7 +657,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: Icon(icon, color: ProfileCustomizationData.editorAccentColor),
+          prefixIcon:
+              Icon(icon, color: ProfileCustomizationData.editorAccentColor),
           border: InputBorder.none,
           contentPadding: EdgeInsets.all(16),
           labelStyle: TextStyle(
@@ -654,4 +676,4 @@ class _ProfileEditPageState extends State<ProfileEditPage> with TickerProviderSt
       ),
     );
   }
-} 
+}

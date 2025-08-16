@@ -3,9 +3,9 @@ import '../services/scan_data_service.dart';
 
 /// スキャン結果の状態別UI構築クラス
 class ScanResultWidgets {
-  
   /// エラー状態のウィジェットを構築
-  static Widget buildErrorState(ScanDataErrorType errorType, {String? message}) {
+  static Widget buildErrorState(ScanDataErrorType errorType,
+      {String? message}) {
     String title = 'エラーが発生しました';
     String description = 'もう一度お試しください';
     IconData icon = Icons.error_outline;
@@ -210,7 +210,8 @@ class ScanResultWidgets {
   }
 
   /// ユーザー情報カードを構築
-  static Widget buildUserInfoCard(UserProfile userProfile) {
+  static Widget buildUserInfoCard(UserProfile userProfile,
+      {String? analysisComment}) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -300,7 +301,6 @@ class ScanResultWidgets {
                 ),
               ],
             ),
-            
             if (userProfile.bio.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
@@ -324,7 +324,6 @@ class ScanResultWidgets {
                 ),
               ),
             ],
-
             if (userProfile.favoriteQuote.isNotEmpty) ...[
               const SizedBox(height: 12),
               Container(
@@ -361,7 +360,6 @@ class ScanResultWidgets {
                 ),
               ),
             ],
-            
             if (userProfile.selectedGenres.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
@@ -398,6 +396,48 @@ class ScanResultWidgets {
                     ),
                   );
                 }).toList(),
+              ),
+            ],
+            // --- ここから分析コメント表示 ---
+            if (analysisComment != null && analysisComment.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFB8E6FF).withOpacity(0.2),
+                      const Color(0xFF667EEA).withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: const Color(0xFF667EEA).withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.insights,
+                      color: const Color(0xFF667EEA),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        analysisComment,
+                        style: TextStyle(
+                          color: Colors.grey.shade800,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -457,9 +497,7 @@ class ScanResultWidgets {
                 ),
               ],
             ),
-            
             const SizedBox(height: 16),
-            
             if (animeList.isEmpty)
               _buildEmptyAnimeList()
             else
@@ -504,9 +542,10 @@ class ScanResultWidgets {
   }
 
   /// アニメリスト項目を構築
-  static List<Widget> _buildAnimeListItems(List<Map<String, dynamic>> animeList) {
+  static List<Widget> _buildAnimeListItems(
+      List<Map<String, dynamic>> animeList) {
     List<Widget> widgets = [];
-    
+
     // 最初の10件を表示
     widgets.addAll(
       animeList.take(10).map((anime) {
@@ -538,9 +577,7 @@ class ScanResultWidgets {
                   size: 20,
                 ),
               ),
-              
               const SizedBox(width: 12),
-              
               Expanded(
                 child: Text(
                   anime['title'] ?? 'タイトル不明',
@@ -558,7 +595,7 @@ class ScanResultWidgets {
         );
       }).toList(),
     );
-    
+
     // 10件以上ある場合の表示
     if (animeList.length > 10) {
       widgets.add(
@@ -585,7 +622,7 @@ class ScanResultWidgets {
         ),
       );
     }
-    
+
     return widgets;
   }
-} 
+}

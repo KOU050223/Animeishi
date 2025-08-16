@@ -86,15 +86,17 @@ class _AccountSettingState extends State<AccountSettingPage>
         await user.updateProfile(displayName: userName);
         await user.reload();
         print('ユーザー名が更新されました: ${userName}');
-        
+
         // 成功アニメーション後にホーム画面へ遷移
         await Future.delayed(const Duration(milliseconds: 500));
         if (mounted) {
           Navigator.pushReplacement(
             context,
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => HomePage(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  HomePage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
                 return SlideTransition(
                   position: Tween<Offset>(
                     begin: const Offset(1.0, 0.0),
@@ -360,7 +362,7 @@ class _AccountSettingState extends State<AccountSettingPage>
                         ),
                       ),
                       const SizedBox(height: 40),
-                      
+
                       // メインコンテンツ
                       FadeTransition(
                         opacity: _fadeAnimation,
@@ -403,7 +405,8 @@ class _AccountSettingState extends State<AccountSettingPage>
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF667EEA).withOpacity(0.4),
+                                        color: const Color(0xFF667EEA)
+                                            .withOpacity(0.4),
                                         blurRadius: 20,
                                         offset: const Offset(0, 10),
                                       ),
@@ -416,7 +419,7 @@ class _AccountSettingState extends State<AccountSettingPage>
                                   ),
                                 ),
                                 const SizedBox(height: 24),
-                                
+
                                 // タイトル
                                 const Text(
                                   'アカウント設定',
@@ -444,7 +447,7 @@ class _AccountSettingState extends State<AccountSettingPage>
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 32),
-                                
+
                                 // ユーザー名入力フィールド
                                 _buildModernTextField(
                                   label: 'ユーザー名',
@@ -459,13 +462,14 @@ class _AccountSettingState extends State<AccountSettingPage>
                                   focusNode: _userNameFocusNode,
                                 ),
                                 const SizedBox(height: 32),
-                                
+
                                 // 登録ボタン
                                 SizedBox(
                                   width: double.infinity,
                                   height: 56,
                                   child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _updateUsername,
+                                    onPressed:
+                                        _isLoading ? null : _updateUsername,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       shadowColor: Colors.transparent,
@@ -486,7 +490,8 @@ class _AccountSettingState extends State<AccountSettingPage>
                                         borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: const Color(0xFF667EEA).withOpacity(0.4),
+                                            color: const Color(0xFF667EEA)
+                                                .withOpacity(0.4),
                                             blurRadius: 20,
                                             offset: const Offset(0, 10),
                                           ),
@@ -498,8 +503,11 @@ class _AccountSettingState extends State<AccountSettingPage>
                                             ? const SizedBox(
                                                 width: 24,
                                                 height: 24,
-                                                child: CircularProgressIndicator(
-                                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
                                                   strokeWidth: 2,
                                                 ),
                                               )
@@ -534,32 +542,32 @@ class _AccountSettingState extends State<AccountSettingPage>
 
 class ParticlePainter extends CustomPainter {
   final double animationValue;
-  
+
   ParticlePainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     final random = math.Random(42);
-    
+
     for (int i = 0; i < 50; i++) {
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height;
       final offset = (animationValue * 2 * math.pi + i) % (2 * math.pi);
-      
+
       final animatedX = x + math.sin(offset) * 20;
       final animatedY = y + math.cos(offset) * 20;
-      
+
       final opacity = (math.sin(animationValue * 2 * math.pi + i) + 1) / 2;
       final radius = 2 + math.sin(animationValue * 4 * math.pi + i) * 2;
-      
+
       paint.color = [
         const Color(0xFFE8D5FF).withOpacity(opacity * 0.6),
         const Color(0xFFB8E6FF).withOpacity(opacity * 0.6),
         const Color(0xFFFFD6E8).withOpacity(opacity * 0.6),
         const Color(0xFFE8FFD6).withOpacity(opacity * 0.6),
       ][i % 4];
-      
+
       canvas.drawCircle(
         Offset(animatedX, animatedY),
         radius,

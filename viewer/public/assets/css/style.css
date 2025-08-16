@@ -1,0 +1,282 @@
+/* リセットとベーススタイル */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ヘッダー */
+.header {
+  text-align: center;
+  padding: 20px 0;
+  color: white;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* メインコンテンツ */
+.main-content {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+/* ランディングページ */
+.landing-page {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.landing-content h1 {
+  font-size: 3rem;
+  color: #667eea;
+  margin-bottom: 20px;
+}
+
+.landing-content p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 40px;
+}
+
+.qr-instruction {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 30px;
+  display: inline-block;
+}
+
+.qr-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+/* プロフィールセクション */
+.profile-section {
+  padding: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-avatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-info h2 {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+}
+
+.user-email {
+  opacity: 0.8;
+  margin-bottom: 10px;
+}
+
+.user-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-item {
+  background: rgba(255,255,255,0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+
+/* アニメリストセクション */
+.anime-section {
+  padding: 30px;
+}
+
+.anime-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.anime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.anime-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.anime-card:hover {
+  transform: translateY(-2px);
+}
+
+.anime-image {
+  height: 200px;
+  overflow: hidden;
+}
+
+.anime-image img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.anime-info {
+  padding: 20px;
+}
+
+.anime-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.anime-date {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.anime-comment {
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* 空の状態 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* エラーページ */
+.error-page {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  color: #e74c3c;
+}
+
+.error-page h2 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.error-page button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.3s ease;
+}
+
+.error-page button:hover {
+  background: #5a6fd8;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .landing-content h1 {
+    font-size: 2.5rem;
+  }
+  
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .anime-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .user-stats {
+    justify-content: center;
+  }
+}
+
+/* ローディング状態 */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

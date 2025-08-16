@@ -55,5 +55,40 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "storage": {
+    "rules": "storage.rules",
+    "cors": [
+      {
+        "origin": [
+          "https://animeishi-73560*.web.app",
+          "https://animeishi.uomi.site", 
+          "https://animeishi-73560.firebaseapp.com",
+          "http://localhost:*",
+          "https://localhost:*"
+        ],
+        "method": ["GET", "POST", "PUT", "DELETE"],
+        "maxAgeSeconds": 3600
+      }
+    ]
   }
+
 }

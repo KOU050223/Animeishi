@@ -7,7 +7,6 @@ import 'package:animeishi/ui/auth/view/auth_page.dart'; // AuthPage のインポ
 import 'package:animeishi/ui/home/view/home_page.dart'; // HomePage のインポート（ここが重要）
 import 'package:animeishi/ui/animes/view/favorites_page.dart';
 
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -15,7 +14,8 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
+class _ProfilePageState extends State<ProfilePage>
+    with TickerProviderStateMixin {
   String _username = '';
   String _userId = '';
   String _email = '';
@@ -24,7 +24,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   int _favoritesCount = 0;
   int _friendsCount = 0;
   bool _isLoading = true;
-  
+
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
@@ -41,15 +41,16 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
       duration: Duration(milliseconds: 600),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
     _slideAnimation = Tween<Offset>(
       begin: Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
-    
+    ).animate(
+        CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack));
+
     _loadUserProfile();
   }
 
@@ -64,6 +65,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
+        if (!mounted) return;
+
         setState(() {
           _userId = user.uid;
           _email = user.email ?? '';
@@ -76,21 +79,35 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
             .doc(user.uid)
             .get();
 
+        if (!mounted) return; //非同期処理後に再度チェック
+
         if (userDoc.exists) {
+          // selectedGeneresフィールドが存在しない場合は空のリストを設定
+          final data = userDoc.data() as Map<String, dynamic>?;
           setState(() {
-            _selectedGenres = List<String>.from(userDoc['selectedGenres'] ?? []);
+            _selectedGenres = data != null && data.containsKey('selectedGenres')
+                ? List<String>.from(userDoc['selectedGenres'] ?? [])
+                : [];
+          });
+        } else {
+          // ユーザードキュメントが存在しない場合は空のリストを設定
+          setState(() {
+            _selectedGenres = [];
           });
         }
 
         // 統計データを取得
         await _loadStatistics();
-        
+
         // アニメーション開始
         _fadeController.forward();
         _slideController.forward();
-        
       } catch (e) {
         print('Failed to load user profile: $e');
+        // エラーが発生した場合も空のリストを設定
+        setState(() {
+          _selectedGenres = [];
+        });
       } finally {
         setState(() {
           _isLoading = false;
@@ -189,7 +206,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                 onTap: () {
                                   Navigator.pushReplacement(
                                     context,
-                                    MaterialPageRoute(builder: (context) => HomePage()),
+                                    MaterialPageRoute(
+                                        builder: (context) => HomePage()),
                                   );
                                 },
                                 child: Icon(
@@ -260,7 +278,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       borderRadius: BorderRadius.circular(50),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Color(0xFF667eea).withOpacity(0.3),
+                                          color: Color(0xFF667eea)
+                                              .withOpacity(0.3),
                                           blurRadius: 20,
                                           offset: Offset(0, 8),
                                         ),
@@ -272,9 +291,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       color: Colors.white,
                                     ),
                                   ),
-                                  
+
                                   SizedBox(height: 16),
-                                  
+
                                   // ユーザーネーム
                                   Text(
                                     _username.isEmpty ? '未設定' : _username,
@@ -284,12 +303,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       color: Color(0xFF2D3748),
                                     ),
                                   ),
-                                  
+
                                   SizedBox(height: 8),
-                                  
+
                                   // メールアドレス
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: Color(0xFF667eea).withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(20),
@@ -315,11 +335,23 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                             margin: EdgeInsets.symmetric(horizontal: 20),
                             child: Row(
                               children: [
-                                Expanded(child: _buildStatCard('視聴済み', _watchedCount, Icons.movie_outlined, Color(0xFF48BB78))),
+                                Expanded(
+                                    child: _buildStatCard(
+                                        '視聴済み',
+                                        _watchedCount,
+                                        Icons.movie_outlined,
+                                        Color(0xFF48BB78))),
                                 SizedBox(width: 12),
-                                Expanded(child: _buildStatCard('お気に入り', _favoritesCount, Icons.favorite, Color(0xFFED64A6))),
+                                Expanded(
+                                    child: _buildStatCard(
+                                        'お気に入り',
+                                        _favoritesCount,
+                                        Icons.favorite,
+                                        Color(0xFFED64A6))),
                                 SizedBox(width: 12),
-                                Expanded(child: _buildStatCard('フレンド', _friendsCount, Icons.people, Color(0xFF4299E1))),
+                                Expanded(
+                                    child: _buildStatCard('フレンド', _friendsCount,
+                                        Icons.people, Color(0xFF4299E1))),
                               ],
                             ),
                           ),
@@ -358,9 +390,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                         padding: EdgeInsets.all(8),
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
-                                            colors: [Color(0xFFf093fb), Color(0xFFf5576c)],
+                                            colors: [
+                                              Color(0xFFf093fb),
+                                              Color(0xFFf5576c)
+                                            ],
                                           ),
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         child: Icon(
                                           Icons.category,
@@ -379,15 +415,14 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       ),
                                     ],
                                   ),
-                                  
                                   SizedBox(height: 16),
-                                  
                                   _selectedGenres.isEmpty
                                       ? Container(
                                           padding: EdgeInsets.all(16),
                                           decoration: BoxDecoration(
                                             color: Colors.grey[100],
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           child: Row(
                                             children: [
@@ -410,33 +445,45 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       : Wrap(
                                           spacing: 8,
                                           runSpacing: 8,
-                                          children: _selectedGenres.map((genre) => Container(
-                                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  Color(0xFFf093fb).withOpacity(0.8),
-                                                  Color(0xFFf5576c).withOpacity(0.8),
-                                                ],
-                                              ),
-                                              borderRadius: BorderRadius.circular(20),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Color(0xFFf093fb).withOpacity(0.3),
-                                                  blurRadius: 4,
-                                                  offset: Offset(0, 2),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Text(
-                                              genre,
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          )).toList(),
+                                          children: _selectedGenres
+                                              .map((genre) => Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 6),
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          Color(0xFFf093fb)
+                                                              .withOpacity(0.8),
+                                                          Color(0xFFf5576c)
+                                                              .withOpacity(0.8),
+                                                        ],
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Color(
+                                                                  0xFFf093fb)
+                                                              .withOpacity(0.3),
+                                                          blurRadius: 4,
+                                                          offset: Offset(0, 2),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Text(
+                                                      genre,
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ))
+                                              .toList(),
                                         ),
                                 ],
                               ),
@@ -468,15 +515,14 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                     if (result != null) {
                                       setState(() {
                                         _username = result['username'];
-                                        _selectedGenres = result['selectedGenres'];
+                                        _selectedGenres =
+                                            result['selectedGenres'];
                                         _email = result['email'];
                                       });
                                     }
                                   },
                                 ),
-                                
                                 SizedBox(height: 12),
-                                
                                 _buildActionButton(
                                   '📺 視聴履歴',
                                   '今まで見たアニメをチェック',
@@ -484,13 +530,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                   () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (context) => WatchListPage()),
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              WatchListPage()),
                                     );
                                   },
                                 ),
-                                
                                 SizedBox(height: 12),
-                                
                                 _buildActionButton(
                                   '💖 お気に入り',
                                   'お気に入りのアニメ一覧',
@@ -498,13 +544,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                   () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (context) => FavoritesPage()),
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              FavoritesPage()),
                                     );
                                   },
                                 ),
-                                
                                 SizedBox(height: 20),
-                                
                                 _buildActionButton(
                                   '🔐 ログイン画面',
                                   'アカウント管理',
@@ -512,11 +558,11 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                   () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (context) => AuthPage()),
+                                      MaterialPageRoute(
+                                          builder: (context) => AuthPage()),
                                     );
                                   },
                                 ),
-                                
                                 SizedBox(height: 40),
                               ],
                             ),
@@ -588,9 +634,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     );
   }
 
-
-
-  Widget _buildActionButton(String title, String subtitle, List<Color> colors, VoidCallback onTap) {
+  Widget _buildActionButton(
+      String title, String subtitle, List<Color> colors, VoidCallback onTap) {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: colors),

@@ -19,9 +19,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### 品質管理
 - `flutter analyze` - 静的解析を実行
 - `flutter test` - テストを実行
+- `dart format .` - コードフォーマット
 - `flutter pub get` - 依存関係をインストール
 - `flutter pub upgrade` - 依存関係を更新
 - `flutter clean` - ビルドキャッシュをクリア
+
+### 統合コマンド（新規追加）
+- `make ci` - CI用の全チェック（format-check + lint + test）
+- `make check` - 開発用チェック（warningは許可）
+- `make fix` - 自動修正（format + analyze --fix）
+- `make format` - コードフォーマット
+- `make lint` - 静的解析
+- `make test` - テスト実行
+- `make clean` - クリーンアップ
+
+### スクリプト方式（代替）
+- `./scripts/ci.sh` - CI用の全チェック
+- `dart run scripts/run.dart ci` - Dart版CI
 
 ## アーキテクチャ
 

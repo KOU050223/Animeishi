@@ -12,11 +12,8 @@ class ProfileDataService {
     if (user == null) return null;
 
     try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
         return ProfileCustomization.fromJson(data);
@@ -60,7 +57,8 @@ class ProfileDataService {
   }
 
   /// カスタマイゼーション設定のみを保存する
-  static Future<bool> saveCustomization(ProfileCustomization customization) async {
+  static Future<bool> saveCustomization(
+      ProfileCustomization customization) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
 
@@ -83,11 +81,8 @@ class ProfileDataService {
     if (user == null) return null;
 
     try {
-      final doc = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>;
       }
@@ -105,7 +100,7 @@ class ProfileDataService {
     try {
       // Firebase Authのメールアドレスを更新
       await user.updateEmail(newEmail);
-      
+
       // Firestoreのメールアドレスも更新
       await _firestore
           .collection('users')
@@ -125,10 +120,7 @@ class ProfileDataService {
     if (user == null) return false;
 
     try {
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .delete();
+      await _firestore.collection('users').doc(user.uid).delete();
 
       return true;
     } catch (e) {
@@ -136,4 +128,19 @@ class ProfileDataService {
       return false;
     }
   }
-} 
+
+  /// 特定のユーザーIDからユーザー名を取得する
+  static Future<String?> getUsernameByUserId(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        return data['username'] as String?;
+      }
+    } catch (e) {
+      print('ユーザー名取得エラー: $e');
+    }
+    return null;
+  }
+}
