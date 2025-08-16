@@ -493,6 +493,10 @@ class _HomeTabPageState extends State<HomeTabPage> {
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
 
+    final String qrData = user?.uid != null
+        ? "https://animeishi-viewer.web.app/user/${user!.uid}"
+        : "No UID";
+
     final String? currentUserId = user?.uid;
 
     // ユーザーIDが変更された場合のみ処理（無限ループを防ぐ）
