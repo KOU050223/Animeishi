@@ -1,10 +1,14 @@
 import * as functions from "firebase-functions";
+import * as dotenv from "dotenv";
 import * as logger from "firebase-functions/logger";
 import axios from "axios";
 // eslint-disable-next-line max-len
 import type {Request as ExpressRequest, Response as ExpressResponse} from "express-serve-static-core";
 
-const GEMINI_API_KEY = process.env.GEMINI_KEY || "";
+dotenv.config(); // これで process.env に読み込まれる
+
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 const GEMINI_API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/" +
   "gemini-1.5-flash:generateContent";
