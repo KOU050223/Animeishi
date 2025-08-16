@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "animeishi-73560"
+  },
+  "targets": {
+    "animeishi-73560": {
+      "hosting": {
+        "viewer-site": [
+          "animeishi-viewer"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
