@@ -15,9 +15,10 @@ class MeishiImageService {
     try {
       return await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1080,
-        maxHeight: 1080,
-        imageQuality: 85,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 90,
+        preferredCameraDevice: CameraDevice.rear,
       );
     } catch (e) {
       print('画像選択エラー: $e');
@@ -36,10 +37,27 @@ class MeishiImageService {
       final Reference ref =
           _storage.ref().child('meishi_images').child(fileName);
 
-      // 常にバイトデータを使用してWeb/モバイル両方に対応
+      // 画像データを取得
       final Uint8List imageData = await imageFile.readAsBytes();
-      final UploadTask uploadTask =
-          ref.putData(imageData, SettableMetadata(contentType: 'image/jpeg'));
+      print('画像データサイズ: ${imageData.length} bytes');
+
+      // 画像データが有効かチェック
+      if (imageData.isEmpty) {
+        print('画像データが空です');
+        return null;
+      }
+
+      // メタデータを詳細に設定
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        customMetadata: {
+          'uploadedBy': user.uid,
+          'uploadTime': DateTime.now().toIso8601String(),
+          'originalName': imageFile.name,
+        },
+      );
+
+      final UploadTask uploadTask = ref.putData(imageData, metadata);
 
       final TaskSnapshot snapshot = await uploadTask;
       final String downloadURL = await snapshot.ref.getDownloadURL();
@@ -73,14 +91,22 @@ class MeishiImageService {
   /// ユーザーの名刺画像URLを取得
   static Future<String?> getMeishiImageURL() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return null;
+    if (user == null) {
+      print('getMeishiImageURL: ユーザーがログインしていません');
+      return null;
+    }
 
     try {
+      print('getMeishiImageURL: ユーザーID ${user.uid} の名刺画像URLを取得中...');
       final doc = await _firestore.collection('users').doc(user.uid).get();
 
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
-        return data['meishiImageURL'] as String?;
+        final imageURL = data['meishiImageURL'] as String?;
+        print('getMeishiImageURL: 取得結果 = $imageURL');
+        return imageURL;
+      } else {
+        print('getMeishiImageURL: ユーザードキュメントが存在しません');
       }
     } catch (e) {
       print('名刺画像URL取得エラー: $e');

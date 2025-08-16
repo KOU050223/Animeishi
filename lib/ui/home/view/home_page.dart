@@ -10,6 +10,10 @@ import 'package:animeishi/ui/profile/services/qr_image_service.dart';
 import 'package:animeishi/ui/profile/services/qr_save_service.dart';
 import 'package:animeishi/ui/home/services/meishi_image_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:animeishi/ui/components/web_firebase_image.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -180,12 +184,15 @@ class _HomeTabPageState extends State<HomeTabPage> {
 
   /// 名刺画像を読み込む
   Future<void> _loadMeishiImage() async {
+    print('_loadMeishiImage: 名刺画像読み込み開始');
     try {
       final imageURL = await MeishiImageService.getMeishiImageURL();
+      print('_loadMeishiImage: 取得したURL = $imageURL');
       if (mounted) {
         setState(() {
           _meishiImageURL = imageURL;
         });
+        print('_loadMeishiImage: UI状態更新完了');
       }
     } catch (e) {
       print('名刺画像読み込みエラー: $e');
@@ -208,6 +215,8 @@ class _HomeTabPageState extends State<HomeTabPage> {
             _meishiImageURL = imageURL;
             _isUploadingMeishi = false;
           });
+          // アップロード完了後に再読み込みを実行
+          _loadMeishiImage();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('名刺画像を設定しました'),
@@ -236,6 +245,181 @@ class _HomeTabPageState extends State<HomeTabPage> {
         );
       }
     }
+  }
+
+
+  /// Web環境用プレースホルダーウィジェット
+  Widget _buildWebPlaceholder() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF667EEA).withValues(alpha: 0.1),
+            const Color(0xFF764ba2).withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: const Color(0xFF667EEA).withValues(alpha: 0.3),
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF667EEA).withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.credit_card,
+              size: 32,
+              color: Color(0xFF667EEA),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            '名刺が設定済み',
+            style: TextStyle(
+              color: Color(0xFF667EEA),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Web版では制限あり',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 10,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'モバイルアプリで実際の画像をご確認ください',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontSize: 9,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// エラー表示ウィジェット
+  Widget _buildErrorWidget() {
+    return Container(
+      color: Colors.grey.shade100,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error,
+              color: Colors.grey,
+              size: 40,
+            ),
+            SizedBox(height: 8),
+            Text(
+              '画像の読み込みに\n失敗しました',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// URLから名刺画像を表示するウィジェットを構築
+  Widget _buildMeishiImageFromURL(String imageURL) {
+    // URLからFirebase Storage パスを抽出
+    String? storagePath = _extractStoragePathFromURL(imageURL);
+    
+    if (storagePath != null) {
+      // 新しいWebFirebaseImageコンポーネントを使用
+      return WebFirebaseImage(
+        imagePath: storagePath,
+        width: 250,
+        height: 150,
+        fit: BoxFit.cover,
+        placeholder: Container(
+          width: 250,
+          height: 150,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(strokeWidth: 2),
+                const SizedBox(height: 8),
+                Text(
+                  '名刺画像読み込み中...',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        errorWidget: _buildWebPlaceholder(),
+      );
+    } else {
+      // パス抽出に失敗した場合はプレースホルダー表示
+      return _buildWebPlaceholder();
+    }
+  }
+
+  /// Firebase Storage URLからパスを抽出
+  String? _extractStoragePathFromURL(String imageURL) {
+    try {
+      final uri = Uri.parse(imageURL);
+      final pathSegments = uri.pathSegments;
+      
+      // "/v0/b/bucket-name/o/" の後のパスを取得
+      String storagePath = '';
+      bool foundO = false;
+      for (int i = 0; i < pathSegments.length; i++) {
+        if (pathSegments[i] == 'o' && i + 1 < pathSegments.length) {
+          foundO = true;
+          continue;
+        }
+        if (foundO) {
+          storagePath = pathSegments.sublist(i).join('/');
+          break;
+        }
+      }
+      
+      if (storagePath.isNotEmpty) {
+        final decodedPath = Uri.decodeComponent(storagePath);
+        print('抽出されたStorage パス: $decodedPath');
+        return decodedPath;
+      }
+    } catch (e) {
+      print('Storage パス抽出エラー: $e');
+    }
+    return null;
   }
 
   /// QR画像をギャラリーに保存する
@@ -458,12 +642,24 @@ class _HomeTabPageState extends State<HomeTabPage> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'あなたの名刺',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Column(
+                    children: [
+                      Text(
+                        'あなたの名刺 (URL: ${_meishiImageURL != null ? "有" : "無"})',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (_meishiImageURL != null)
+                        Text(
+                          'URL: ${_meishiImageURL!.substring(0, 50)}...',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 20),
 
@@ -505,25 +701,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: _meishiImageURL!,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey.shade100,
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: Colors.grey.shade100,
-                              child: const Center(
-                                child: Icon(
-                                  Icons.error,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          ),
+                          child: _buildMeishiImageFromURL(_meishiImageURL!),
                         ),
                       )
                     else
@@ -579,8 +757,9 @@ class _HomeTabPageState extends State<HomeTabPage> {
                               : Icons.add_photo_alternate,
                           size: 20,
                         ),
-                        label:
-                            Text(_meishiImageURL != null ? '名刺を変更' : '名刺を設定'),
+                        label: Text(_meishiImageURL != null 
+                            ? (kIsWeb ? '名刺を変更（Web）' : '名刺を変更') 
+                            : (kIsWeb ? '名刺を設定（Web）' : '名刺を設定')),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF667EEA),
                           foregroundColor: Colors.white,
