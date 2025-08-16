@@ -11,13 +11,15 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // ユーザー個人データ - 本人のみアクセス可能
+    // ユーザー個人データ - プロフィールは公開読み取り、編集は本人のみ
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
-      
+      allow read: if true; // プロフィールを公開読み取りに変更
+      allow write: if isOwner(userId);
+
       // ユーザーのサブコレクション（selectedAnime, meishies, friends等）
       match /{subcollection}/{document} {
-        allow read, write: if isOwner(userId);
+        allow read: if subcollection == "selectedAnime";
+        allow write: if isOwner(userId);
       }
     }
     
