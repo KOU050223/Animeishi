@@ -12,16 +12,21 @@ class AnimeAnalysisService {
     if (apiKey == null) {
       throw Exception('Gemini APIキーが設定されていません');
     }
-    _generativeModel = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
+    _generativeModel =
+        GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
   }
 
   /// アニメリストから傾向分析コメントを生成
-  Future<String> analyzeAnimeTrends(List<Map<String, dynamic>> animeList, {String? username}) async {
+  Future<String> analyzeAnimeTrends(List<Map<String, dynamic>> animeList,
+      {String? username}) async {
     if (animeList.isEmpty) {
       return 'アニメの視聴履歴がありません。';
     }
 
-    final titles = animeList.map((a) => a['title'] ?? '').where((t) => t.isNotEmpty).toList();
+    final titles = animeList
+        .map((a) => a['title'] ?? '')
+        .where((t) => t.isNotEmpty)
+        .toList();
     final prompt = '''
 ${username != null ? "$usernameさん" : "このユーザー"}のアニメ視聴傾向を分析してください。
 以下は最近視聴・選択したアニメタイトル一覧です。

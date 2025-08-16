@@ -210,7 +210,8 @@ class ScanResultWidgets {
   }
 
   /// ユーザー情報カードを構築
-  static Widget buildUserInfoCard(UserProfile userProfile, {String? analysisComment}) {
+  static Widget buildUserInfoCard(UserProfile userProfile,
+      {String? analysisComment}) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
