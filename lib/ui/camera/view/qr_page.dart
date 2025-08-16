@@ -114,10 +114,21 @@ class _ScannerWidgetState extends State<ScannerWidget>
   /// QRコードからユーザーIDを抽出
   String? _extractUserIdFromQR(String qrData) {
     // QRコードのデータ形式に応じて調整
-    // 例: "animeishi://user/{userId}" 形式の場合
+    // 例: "https://animeishi-viewer.web.app/user/{userId}" 形式の場合
     final uri = Uri.tryParse(qrData);
-    if (uri?.scheme == 'animeishi' && uri?.pathSegments.length == 2) {
-      if (uri!.pathSegments[0] == 'user') {
+    if (uri != null) {
+      // HTTPS URLの場合
+      if (uri.scheme == 'https' &&
+          uri.host == 'animeishi-viewer.web.app' &&
+          uri.pathSegments.length == 2 &&
+          uri.pathSegments[0] == 'user') {
+        return uri.pathSegments[1];
+      }
+
+      // カスタムスキーム animeishi://user/{userId} の場合
+      if (uri.scheme == 'animeishi' &&
+          uri.pathSegments.length == 2 &&
+          uri.pathSegments[0] == 'user') {
         return uri.pathSegments[1];
       }
     }

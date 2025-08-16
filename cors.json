@@ -5,7 +5,8 @@
       "https://animeishi.uomi.site",
       "https://animeishi-73560.firebaseapp.com",
       "http://localhost:*",
-      "https://localhost:*"
+      "https://localhost:*",
+      "https://animeishi-viewer.web.app/"
     ],
     "method": ["GET"],
     "maxAgeSeconds": 3600
