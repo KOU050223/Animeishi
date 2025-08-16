@@ -14,6 +14,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:animeishi/ui/components/web_firebase_image.dart';
+import 'package:animeishi/ui/home/constants/meishi_constants.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -247,7 +248,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
     }
   }
 
-
   /// Web環境用プレースホルダーウィジェット
   Widget _buildWebPlaceholder() {
     return Container(
@@ -351,20 +351,20 @@ class _HomeTabPageState extends State<HomeTabPage> {
   Widget _buildMeishiImageFromURL(String imageURL) {
     // URLからFirebase Storage パスを抽出
     String? storagePath = _extractStoragePathFromURL(imageURL);
-    
+
     if (storagePath != null) {
       // 新しいWebFirebaseImageコンポーネントを使用
       return WebFirebaseImage(
         imagePath: storagePath,
-        width: 250,
-        height: 150,
+        width: MeishiConstants.imageWidth,
+        height: MeishiConstants.imageHeight,
         fit: BoxFit.cover,
         placeholder: Container(
-          width: 250,
-          height: 150,
+          width: MeishiConstants.imageWidth,
+          height: MeishiConstants.imageHeight,
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(MeishiConstants.borderRadius),
           ),
           child: Center(
             child: Column(
@@ -396,7 +396,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
     try {
       final uri = Uri.parse(imageURL);
       final pathSegments = uri.pathSegments;
-      
+
       // "/v0/b/bucket-name/o/" の後のパスを取得
       String storagePath = '';
       bool foundO = false;
@@ -410,7 +410,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
           break;
         }
       }
-      
+
       if (storagePath.isNotEmpty) {
         final decodedPath = Uri.decodeComponent(storagePath);
         print('抽出されたStorage パス: $decodedPath');
@@ -503,8 +503,8 @@ class _HomeTabPageState extends State<HomeTabPage> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'あなたのQRコード',
+                  Text(
+                    'あなた(${user?.email ?? 'ゲスト'})のQRコード',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -611,16 +611,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
                   ],
-
-                  Text(
-                    user?.email ?? 'ゲスト',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -642,37 +633,17 @@ class _HomeTabPageState extends State<HomeTabPage> {
               ),
               child: Column(
                 children: [
-                  Column(
-                    children: [
-                      Text(
-                        'あなたの名刺 (URL: ${_meishiImageURL != null ? "有" : "無"})',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (_meishiImageURL != null)
-                        Text(
-                          'URL: ${_meishiImageURL!.substring(0, 50)}...',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
                   // 名刺画像表示部分
                   if (user != null) ...[
                     if (_isUploadingMeishi)
                       Container(
-                        width: 250,
-                        height: 150,
+                        width: MeishiConstants.imageWidth,
+                        height: MeishiConstants.imageHeight,
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                              MeishiConstants.borderRadius),
                         ),
                         child: const Center(
                           child: Column(
@@ -693,25 +664,28 @@ class _HomeTabPageState extends State<HomeTabPage> {
                       )
                     else if (_meishiImageURL != null)
                       Container(
-                        width: 250,
-                        height: 150,
+                        width: MeishiConstants.imageWidth,
+                        height: MeishiConstants.imageHeight,
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                              MeishiConstants.borderRadius),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                              MeishiConstants.borderRadius),
                           child: _buildMeishiImageFromURL(_meishiImageURL!),
                         ),
                       )
                     else
                       Container(
-                        width: 250,
-                        height: 150,
+                        width: MeishiConstants.imageWidth,
+                        height: MeishiConstants.imageHeight,
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           border: Border.all(color: Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                              MeishiConstants.borderRadius),
                         ),
                         child: const Center(
                           child: Text(
@@ -726,12 +700,13 @@ class _HomeTabPageState extends State<HomeTabPage> {
                       ),
                   ] else
                     Container(
-                      width: 250,
-                      height: 150,
+                      width: MeishiConstants.imageWidth,
+                      height: MeishiConstants.imageHeight,
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                            BorderRadius.circular(MeishiConstants.borderRadius),
                       ),
                       child: const Center(
                         child: Text(
@@ -757,9 +732,9 @@ class _HomeTabPageState extends State<HomeTabPage> {
                               : Icons.add_photo_alternate,
                           size: 20,
                         ),
-                        label: Text(_meishiImageURL != null 
-                            ? (kIsWeb ? '名刺を変更（Web）' : '名刺を変更') 
-                            : (kIsWeb ? '名刺を設定（Web）' : '名刺を設定')),
+                        label: Text(_meishiImageURL != null
+                            ? (kIsWeb ? '名刺を変更' : '名刺を変更')
+                            : (kIsWeb ? '名刺を設定' : '名刺を設定')),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF667EEA),
                           foregroundColor: Colors.white,
