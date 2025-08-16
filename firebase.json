@@ -55,5 +55,21 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules",
+    "cors": [
+      {
+        "origin": [
+          "https://animeishi-73560*.web.app",
+          "https://animeishi.uomi.site", 
+          "https://animeishi-73560.firebaseapp.com",
+          "http://localhost:*",
+          "https://localhost:*"
+        ],
+        "method": ["GET", "POST", "PUT", "DELETE"],
+        "maxAgeSeconds": 3600
+      }
+    ]
   }
 }

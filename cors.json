@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "https://animeishi-73560*.web.app",
+      "https://animeishi.uomi.site",
+      "https://animeishi-73560.firebaseapp.com",
+      "http://localhost:*",
+      "https://localhost:*"
+    ],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]
