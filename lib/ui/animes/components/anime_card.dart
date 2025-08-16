@@ -8,6 +8,7 @@ class AnimeCard extends StatefulWidget {
   final bool isRegistered;
   final VoidCallback onTap;
   final VoidCallback? onSelectToggle;
+  final VoidCallback? onRemove;
 
   const AnimeCard({
     Key? key,
@@ -16,6 +17,7 @@ class AnimeCard extends StatefulWidget {
     required this.isRegistered,
     required this.onTap,
     this.onSelectToggle,
+    this.onRemove,
   }) : super(key: key);
 
   @override
@@ -129,6 +131,87 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  // 削除確認ダイアログを表示
+  Future<void> _showRemoveDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange[600],
+                size: 28,
+              ),
+              SizedBox(width: 12),
+              Text(
+                '視聴済みから削除',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D3748),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            '「${widget.anime['title']}」を視聴済みリストから削除しますか？\n\nこの操作は取り消せません。',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF4A5568),
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                'キャンセル',
+                style: TextStyle(
+                  color: Color(0xFF718096),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.red[400]!, Colors.red[600]!],
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  '削除',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true && widget.onRemove != null) {
+      widget.onRemove!();
     }
   }
 
@@ -496,6 +579,38 @@ class _AnimeCardState extends State<AnimeCard> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
+
+                // 削除ボタン（登録済みの場合のみ表示）
+                if (widget.isRegistered && widget.onRemove != null)
+                  Container(
+                    margin: EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: _showRemoveDialog,
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: Colors.red[400],
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // 選択状態インジケーター（登録済みでない場合のみ表示）
                 if (!widget.isRegistered && widget.onSelectToggle != null)

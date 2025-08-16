@@ -299,6 +299,32 @@ class AnimeListPage extends StatelessWidget {
               }
             }
           : null,
+      onRemove: isRegistered
+          ? () async {
+              await viewModel.removeAnime(tid);
+              // 削除成功のスナックバーを表示
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Text('視聴済みから削除しました'),
+                    ],
+                  ),
+                  backgroundColor: Colors.green[600],
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          : null,
     );
   }
 

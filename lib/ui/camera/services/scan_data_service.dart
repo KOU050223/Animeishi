@@ -99,12 +99,20 @@ class ScanDataService {
       return null;
     }
 
-    // 基本的な検証（必要に応じて拡張）
-    if (qrValue.length < 3) {
-      return null;
+    final trimmedValue = qrValue.trim();
+
+    // URLフォーマットの場合: https://animeishi-viewer.web.app/user/USER_ID
+    if (trimmedValue.startsWith('https://animeishi-viewer.web.app/user/')) {
+      final userId = trimmedValue.substring('https://animeishi-viewer.web.app/user/'.length);
+      return userId.isNotEmpty ? userId : null;
     }
 
-    return qrValue.trim();
+    // 直接ユーザーIDが渡された場合（従来の動作を維持）
+    if (trimmedValue.length >= 3) {
+      return trimmedValue;
+    }
+
+    return null;
   }
 
   /// ユーザーデータの基本情報を整形する
@@ -120,7 +128,8 @@ class ScanDataService {
   }
 
   /// analysisCommentを取得
-  static Future<String?> getAnalysisComment(String currentUserId, String friendUserId) async {
+  static Future<String?> getAnalysisComment(
+      String currentUserId, String friendUserId) async {
     try {
       final doc = await _firestore
           .collection('users')

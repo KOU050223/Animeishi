@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 名刺画像は認証済みユーザーなら誰でも読み取り可能（QRコード共有のため）
+    match /meishi_images/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // その他のファイルは本人のみアクセス可能
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.metadata.uploadedBy;
+    }
+  }
+}

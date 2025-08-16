@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アニ名刺 - ユーザープロフィール</title>
+    <meta name="description" content="アニメ視聴履歴を共有できるWebサイト">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>アニ名刺</h1>
+        </header>
+        
+        <main class="main-content">
+            <!-- プロフィールセクション -->
+            <section class="profile-section" id="user-profile">
+                <!-- プロフィール情報がここに表示されます -->
+            </section>
+            
+            <!-- アニメリストセクション -->
+            <section class="anime-section">
+                <h2>視聴済みアニメ</h2>
+                <div id="anime-list">
+                    <!-- アニメリストがここに表示されます -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- スクリプト -->
+    <script src="/assets/js/firebase-config.js"></script>
+    <script src="/assets/js/app.js"></script>
+</body>
+</html>
