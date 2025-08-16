@@ -29,7 +29,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late PageController _pageController;
 
   final User? _user = FirebaseAuth.instance.currentUser;
-  String get qrData => _user?.uid ?? 'No UID';
+  String get qrData => _user?.uid != null
+      ? 'https://animeishi-viewer.web.app/user/${_user!.uid}'
+      : 'No UID';
 
   // 各ページのウィジェットリスト（ページを保持してスクロール位置などを維持）
   final List<Widget> _pages = [
@@ -153,8 +155,10 @@ class _HomeTabPageState extends State<HomeTabPage> {
     });
 
     try {
-      // QRデータをユーザーIDのみに変更
-      final qrData = _currentUser!.uid;
+      // QRデータを統一されたURL形式に変更
+      final qrData = _currentUser?.uid != null
+          ? 'https://animeishi-viewer.web.app/user/${_currentUser!.uid}'
+          : 'No UID';
       final imageData = await QRImageService.generateQRImage(
         qrData,
         size: 200.0,
@@ -378,7 +382,8 @@ class _HomeTabPageState extends State<HomeTabPage> {
               height: MeishiConstants.imageHeight,
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(MeishiConstants.borderRadius),
+                borderRadius:
+                    BorderRadius.circular(MeishiConstants.borderRadius),
               ),
               child: Center(
                 child: Column(
@@ -487,10 +492,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
-
-    final String qrData = user?.uid != null 
-        ? "https://animeishi-viewer.web.app/user/${user!.uid}"
-        : "No UID";
 
     final String? currentUserId = user?.uid;
 
@@ -662,7 +663,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
-                   
                 ],
               ),
               child: Column(
