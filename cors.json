@@ -1,6 +1,10 @@
 [
   {
-    "origin": ["*"],
+    "origin": [
+      "https://animeishi-73560*.web.app",
+      "https://animeishi.uomi.site",
+      "https://animeishi-73560.firebaseapp.com"
+    ],
     "method": ["GET"],
     "maxAgeSeconds": 3600
   }
