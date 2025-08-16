@@ -86,15 +86,15 @@ class _ProfilePageState extends State<ProfilePage>
           final data = userDoc.data() as Map<String, dynamic>?;
           setState(() {
             _selectedGenres = data != null && data.containsKey('selectedGenres')
-              ? List<String>.from(userDoc['selectedGenres'] ?? [])
-              : [];
+                ? List<String>.from(userDoc['selectedGenres'] ?? [])
+                : [];
           });
         } else {
           // ユーザードキュメントが存在しない場合は空のリストを設定
           setState(() {
             _selectedGenres = [];
           });
-        } 
+        }
 
         // 統計データを取得
         await _loadStatistics();

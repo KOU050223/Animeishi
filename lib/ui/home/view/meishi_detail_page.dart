@@ -154,7 +154,8 @@ class _MeishiDetailPageState extends State<MeishiDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final storagePath = widget.storagePath ?? _extractStoragePathFromURL(widget.imageURL);
+    final storagePath =
+        widget.storagePath ?? _extractStoragePathFromURL(widget.imageURL);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -181,7 +182,8 @@ class _MeishiDetailPageState extends State<MeishiDetailPage> {
                             width: MediaQuery.of(context).size.height,
                             height: MediaQuery.of(context).size.width,
                             child: AspectRatio(
-                              aspectRatio: MeishiConstants.aspectRatio, // 想定される名刺画像の比率（1075:650）
+                              aspectRatio: MeishiConstants
+                                  .aspectRatio, // 想定される名刺画像の比率（1075:650）
                               child: WebFirebaseImage(
                                 imagePath: storagePath,
                                 fit: BoxFit.contain, // アスペクト比を保持して全体を表示

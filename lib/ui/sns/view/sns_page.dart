@@ -120,23 +120,23 @@ class _SNSPageState extends State<SNSPage> with TickerProviderStateMixin {
         }
       }
 
-     if (mounted) {
-      setState(() {
-        _friendIds = friendIds;
-        _friendNames = friendNames;
-        _friendGenres = friendGenres;
-        _isLoading = false;
-      });
-     }
+      if (mounted) {
+        setState(() {
+          _friendIds = friendIds;
+          _friendNames = friendNames;
+          _friendGenres = friendGenres;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       print('Failed to fetch friends: $e');
       if (mounted) {
-       setState(() {
-        _isLoading = false;
-      });
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
 
   Future<void> _deleteFriend(String friendId) async {
     try {
@@ -147,14 +147,14 @@ class _SNSPageState extends State<SNSPage> with TickerProviderStateMixin {
           .doc(friendId)
           .delete();
 
-    if (mounted) {
-      setState(() {
-        final index = _friendIds.indexOf(friendId);
-        _friendIds.removeAt(index);
-        _friendNames.removeAt(index);
-        _friendGenres.removeAt(index);
-      });
-    }
+      if (mounted) {
+        setState(() {
+          final index = _friendIds.indexOf(friendId);
+          _friendIds.removeAt(index);
+          _friendNames.removeAt(index);
+          _friendGenres.removeAt(index);
+        });
+      }
 
       _showSnackBar('フレンドを削除しました', isSuccess: true);
     } catch (e) {

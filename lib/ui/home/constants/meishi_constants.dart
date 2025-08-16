@@ -2,10 +2,10 @@
 class MeishiConstants {
   /// 想定される名刺画像の実際のサイズ（幅）
   static const double originalWidth = 1075.0;
-  
+
   /// 想定される名刺画像の実際のサイズ（高さ）
   static const double originalHeight = 650.0;
-  
+
   /// 名刺画像の正確なアスペクト比 (1075:650)
   static const double aspectRatio = originalWidth / originalHeight;
 

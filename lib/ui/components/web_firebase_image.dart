@@ -28,7 +28,7 @@ class _WebFirebaseImageState extends State<WebFirebaseImage> {
   String? _imageUrl;
   bool _isLoading = true;
   String? _error;
-  
+
   // Web用の簡単なキャッシュ機能
   static final Map<String, String> _urlCache = {};
 
@@ -66,12 +66,12 @@ class _WebFirebaseImageState extends State<WebFirebaseImage> {
       print('Firebase Storageから画像URL取得中: ${widget.imagePath}');
       final ref = FirebaseStorage.instance.ref().child(widget.imagePath);
       final url = await ref.getDownloadURL();
-      
+
       print('URL取得成功: $url');
-      
+
       // キャッシュに保存
       _urlCache[widget.imagePath] = url;
-      
+
       if (mounted) {
         setState(() {
           _imageUrl = url;
@@ -178,7 +178,7 @@ class _WebFirebaseImageState extends State<WebFirebaseImage> {
         fit: widget.fit,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          
+
           return Container(
             width: widget.width,
             height: widget.height,
@@ -236,11 +236,11 @@ class WebFirebaseImageBuilder extends StatelessWidget {
     print('Firebase Storage URL取得: $imagePath');
     final ref = FirebaseStorage.instance.ref().child(imagePath);
     final url = await ref.getDownloadURL();
-    
+
     // キャッシュに保存
     _urlCache[imagePath] = url;
     print('URL取得完了: $url');
-    
+
     return url;
   }
 
@@ -250,35 +250,35 @@ class WebFirebaseImageBuilder extends StatelessWidget {
       future: _getImageUrl(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return placeholder ?? 
-            Container(
-              width: width,
-              height: height,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            );
+          return placeholder ??
+              Container(
+                width: width,
+                height: height,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
         }
 
         if (snapshot.hasError || !snapshot.hasData) {
           print('FutureBuilder画像取得エラー: ${snapshot.error}');
-          return errorWidget ?? 
-            Container(
-              width: width,
-              height: height,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: const Center(
-                child: Icon(Icons.error, color: Colors.grey),
-              ),
-            );
+          return errorWidget ??
+              Container(
+                width: width,
+                height: height,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: const Center(
+                  child: Icon(Icons.error, color: Colors.grey),
+                ),
+              );
         }
 
         return ClipRRect(
@@ -304,14 +304,14 @@ class WebFirebaseImageBuilder extends StatelessWidget {
             },
             errorBuilder: (context, error, stackTrace) {
               print('Image.network エラー: $error');
-              return errorWidget ?? 
-                Container(
-                  width: width,
-                  height: height,
-                  child: const Center(
-                    child: Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                );
+              return errorWidget ??
+                  Container(
+                    width: width,
+                    height: height,
+                    child: const Center(
+                      child: Icon(Icons.broken_image, color: Colors.grey),
+                    ),
+                  );
             },
           ),
         );

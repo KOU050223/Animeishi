@@ -103,7 +103,8 @@ class ScanDataService {
 
     // URLフォーマットの場合: https://animeishi-viewer.web.app/user/USER_ID
     if (trimmedValue.startsWith('https://animeishi-viewer.web.app/user/')) {
-      final userId = trimmedValue.substring('https://animeishi-viewer.web.app/user/'.length);
+      final userId = trimmedValue
+          .substring('https://animeishi-viewer.web.app/user/'.length);
       return userId.isNotEmpty ? userId : null;
     }
 

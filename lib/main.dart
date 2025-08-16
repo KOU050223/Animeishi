@@ -7,7 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     await dotenv.load(fileName: '.env'); // ← 追加: .envの読み込み
   } catch (e) {
