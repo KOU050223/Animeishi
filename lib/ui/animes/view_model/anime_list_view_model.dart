@@ -629,10 +629,10 @@ class AnimeListViewModel extends ChangeNotifier {
     try {
       final userId = user.uid;
       final docRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('selectedAnime')
-        .doc(tid);
+          .collection('users')
+          .doc(userId)
+          .collection('selectedAnime')
+          .doc(tid);
 
       await docRef.delete();
 
@@ -645,7 +645,6 @@ class AnimeListViewModel extends ChangeNotifier {
       _safeNotifyListeners();
     }
   }
-
 
   Future<void> loadSelectedAnime() async {
     final user = FirebaseAuth.instance.currentUser;

@@ -7,7 +7,6 @@ class AnimeAnalysisService {
   static const String functionsUrl =
       'https://us-central1-animeishi-73560.cloudfunctions.net/default';
 
-
   /// アニメリストから傾向分析コメントを生成（Firebase Functions経由）
 
   Future<String> analyzeAnimeTrends(List<Map<String, dynamic>> animeList,
