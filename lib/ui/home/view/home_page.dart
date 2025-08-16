@@ -460,7 +460,7 @@ class _HomeTabPageState extends State<HomeTabPage> {
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
 
-    final String qrData = user?.uid != null 
+    final String qrData = user?.uid != null
         ? "https://animeishi-viewer.web.app/user/${user!.uid}"
         : "No UID";
 
@@ -634,7 +634,6 @@ class _HomeTabPageState extends State<HomeTabPage> {
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
-                   
                 ],
               ),
               child: Column(
