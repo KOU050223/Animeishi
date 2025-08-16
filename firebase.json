@@ -55,5 +55,15 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules",
+    "cors": [
+      {
+        "origin": ["*"],
+        "method": ["GET", "POST", "PUT", "DELETE"],
+        "maxAgeSeconds": 3600
+      }
+    ]
   }
 }
