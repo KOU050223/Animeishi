@@ -732,10 +732,8 @@ class _HomeTabPageState extends State<HomeTabPage> {
                               : Icons.add_photo_alternate,
                           size: 20,
                         ),
-                        label: Text(_meishiImageURL != null
-                            ? (kIsWeb ? '名刺を変更' : '名刺を変更')
-                            ? '名刺を変更'
-                            : '名刺を設定'),
+                        label:
+                            Text(_meishiImageURL != null ? '名刺を変更' : '名刺を設定'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF667EEA),
                           foregroundColor: Colors.white,
