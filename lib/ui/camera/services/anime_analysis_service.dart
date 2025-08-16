@@ -1,46 +1,37 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-/// アニメ視聴傾向分析サービス
+/// アニメリストから傾向分析コメントを生成するサービス
 class AnimeAnalysisService {
-  late final GenerativeModel _generativeModel;
+  // FunctionsのエンドポイントURL（環境に合わせて修正してください）
+  static const String functionsUrl =
+      'https://us-central1-animeishi-73560.cloudfunctions.net/default';
 
-  AnimeAnalysisService() {
-    final apiKey = dotenv.env['GEMINI_API_KEY'];
-    if (apiKey == null) {
-      throw Exception('Gemini APIキーが設定されていません');
-    }
-    _generativeModel =
-        GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
-  }
 
-  /// アニメリストから傾向分析コメントを生成
+  /// アニメリストから傾向分析コメントを生成（Firebase Functions経由）
+
   Future<String> analyzeAnimeTrends(List<Map<String, dynamic>> animeList,
       {String? username}) async {
     if (animeList.isEmpty) {
       return 'アニメの視聴履歴がありません。';
     }
 
-    final titles = animeList
-        .map((a) => a['title'] ?? '')
-        .where((t) => t.isNotEmpty)
-        .toList();
-    final prompt = '''
-${username != null ? "$usernameさん" : "このユーザー"}のアニメ視聴傾向を分析してください。
-以下は最近視聴・選択したアニメタイトル一覧です。
-${titles.map((t) => "- $t").join('\n')}
-
-傾向や好み、ジャンル、性格などを推測し、100文字程度でコメントしてください。
-必ず日本語で回答してください。
-''';
-
     try {
-      final response = await _generativeModel.generateContent([
-        Content.text(prompt),
-      ]);
-      return response.text ?? '傾向分析コメントを生成できませんでした。';
+      final response = await http.post(
+        Uri.parse(functionsUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'animeList': animeList,
+          'username': username,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['comment'] ?? '傾向分析コメントを生成できませんでした。';
+      } else {
+        return 'AI分析に失敗しました: ${response.body}';
+      }
     } catch (e) {
       return 'AI分析に失敗しました。しばらく時間をおいて再度お試しください。';
     }
