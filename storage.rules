@@ -6,9 +6,10 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // 名刺画像は認証済みユーザーなら誰でも読み取り可能（QRコード共有のため）
-    match /meishi_images/{userId}/{fileName} {
+    match /meishi_images/{fileName} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && 
+                     fileName.matches('meishi_' + request.auth.uid + '_.*');
     }
     
     // その他のファイルは本人のみアクセス可能
