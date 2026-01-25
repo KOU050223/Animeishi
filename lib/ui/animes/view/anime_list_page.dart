@@ -4,9 +4,7 @@ import '../view_model/anime_list_view_model.dart';
 import '../components/anime_card.dart';
 import '../components/anime_list_header.dart';
 import '../components/anime_notification.dart';
-import 'package:animeishi/model/factory/anime_list_factory.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
-import 'package:animeishi/ui/auth/components/auth_widgets.dart';
 import 'package:animeishi/ui/watch/view/watch_anime.dart';
 
 class AnimeListPage extends StatelessWidget {
@@ -14,13 +12,17 @@ class AnimeListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final viewModel = AnimeListViewModel();
+    // アプリケーション全体で共有されているViewModelを使用
+    final viewModel = Provider.of<AnimeListViewModel>(context, listen: false);
+
+    // 初回のみフェッチ
+    if (!viewModel.isLoading && viewModel.animeList.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         viewModel.fetchFromServer();
-        return viewModel;
-      },
-      child: Scaffold(
+      });
+    }
+
+    return Scaffold(
         backgroundColor: Colors.transparent,
         body: Container(
           decoration: BoxDecoration(
@@ -397,7 +399,8 @@ class AnimeListPage extends StatelessWidget {
   Future<void> _handleFetchFromServer(
       BuildContext context, AnimeListViewModel viewModel) async {
     try {
-      await viewModel.fetchFromServer();
+      // force: true で強制的に再フェッチ
+      await viewModel.fetchFromServer(force: true);
       final count = viewModel.animeList.length;
       AnimeNotification.showSuccess(
         context,

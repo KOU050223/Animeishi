@@ -16,6 +16,7 @@ class AnimeListViewModel extends ChangeNotifier {
   bool _isAscending = false; //デフォルトを降順
   bool _disposed = false; // dispose状態を追跡
   String _searchQuery = ''; // 検索クエリ
+  bool _hasFetchedFromServer = false; // サーバーから取得済みかどうかのフラグ
 
   List<Map<String, dynamic>> get animeList =>
       _filteredAnimeList.isNotEmpty || _searchQuery.isNotEmpty
@@ -27,6 +28,7 @@ class AnimeListViewModel extends ChangeNotifier {
   SortOrder get sortOrder => _sortOrder; //ソート順を取得するゲッター
   bool get isAscending => _isAscending; //昇順 or 降順を取得
   String get searchQuery => _searchQuery; // 検索クエリを取得するゲッター
+  bool get hasFetchedFromServer => _hasFetchedFromServer; // サーバーから取得済みかどうかを取得するゲッター
 
   //ソート順の変更
   void setSortOrder(SortOrder order) {
@@ -405,7 +407,15 @@ class AnimeListViewModel extends ChangeNotifier {
     ];
   }
 
-  Future<void> fetchFromServer() async {
+  Future<void> fetchFromServer({bool force = false}) async {
+    // 既に取得済みで、強制フェッチでない場合はスキップ
+    if (_hasFetchedFromServer && !force) {
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('アニメリストは既に取得済みです。再取得をスキップします。');
+      }
+      return;
+    }
+
     _isLoading = true;
     _safeNotifyListeners();
 
@@ -426,6 +436,8 @@ class AnimeListViewModel extends ChangeNotifier {
         if (FeatureFlags.enableDebugLogs) {
           debugPrint('テスト用データの読み込み完了: ${_animeList.length}件');
         }
+
+        _hasFetchedFromServer = true;
         return;
       }
 
@@ -454,6 +466,8 @@ class AnimeListViewModel extends ChangeNotifier {
       // 選択されたアニメの情報を取得
       await loadSelectedAnime();
 
+      _hasFetchedFromServer = true;
+
       // await FirebaseFirestore.instance.disableNetwork();
     } catch (e) {
       debugPrint('Error fetching from server: $e');
@@ -465,6 +479,7 @@ class AnimeListViewModel extends ChangeNotifier {
         }
         _animeList = _generateTestData();
         sortAnimeList();
+        _hasFetchedFromServer = true;
       }
     } finally {
       _isLoading = false;
