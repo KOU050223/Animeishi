@@ -23,8 +23,8 @@ class AnimeListPage extends StatelessWidget {
     }
 
     return Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Container(
+      backgroundColor: Colors.transparent,
+      body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -227,7 +227,7 @@ class AnimeListPage extends StatelessWidget {
             },
           ),
         ),
-        floatingActionButton: Consumer<AnimeListViewModel>(
+      floatingActionButton: Consumer<AnimeListViewModel>(
           builder: (context, viewModel, child) {
             final hasSelected = viewModel.selectedAnime.isNotEmpty;
 
