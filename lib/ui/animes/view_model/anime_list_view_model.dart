@@ -28,7 +28,8 @@ class AnimeListViewModel extends ChangeNotifier {
   SortOrder get sortOrder => _sortOrder; //ソート順を取得するゲッター
   bool get isAscending => _isAscending; //昇順 or 降順を取得
   String get searchQuery => _searchQuery; // 検索クエリを取得するゲッター
-  bool get hasFetchedFromServer => _hasFetchedFromServer; // サーバーから取得済みかどうかを取得するゲッター
+  bool get hasFetchedFromServer =>
+      _hasFetchedFromServer; // サーバーから取得済みかどうかを取得するゲッター
 
   //ソート順の変更
   void setSortOrder(SortOrder order) {
