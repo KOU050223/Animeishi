@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:animeishi/ui/home/view/home_page.dart';
 import 'package:animeishi/ui/camera/services/anime_analysis_service.dart';
 import 'package:animeishi/ui/camera/services/scan_data_service.dart';
 import '../controllers/scan_result_animation_controller.dart';
-import '../services/scan_data_service.dart';
 import '../components/scan_result_widgets.dart';
 import '../components/scan_result_painters.dart';
 
@@ -60,6 +60,21 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
     // データ取得
     try {
       final result = await ScanDataService.fetchUserData(_userId!);
+
+      // 既存の分析結果を取得
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUserId != null && result.success) {
+        final savedComment = await ScanDataService.getAnalysisComment(
+          currentUserId,
+          _userId!,
+        );
+        if (savedComment != null) {
+          setState(() {
+            analysisComment = savedComment;
+          });
+        }
+      }
+
       setState(() {
         _scanResult = result;
         _isLoading = false;
@@ -94,6 +109,17 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
         animeList,
         username: username,
       );
+
+      // 分析結果をFirestoreに保存
+      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUserId != null) {
+        await ScanDataService.saveAnalysisComment(
+          currentUserId,
+          userId,
+          comment,
+        );
+      }
+
       setState(() {
         analysisComment = comment;
         isAnalyzing = false;
@@ -166,10 +192,7 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
                       (route) => false,
                     );
                   },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Color(0xFF667EEA),
-                  ),
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF667EEA)),
                 ),
               ),
             ),
@@ -225,30 +248,13 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
             ScanResultWidgets.buildAnimeListCard(animeList),
 
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.insights),
-              label: const Text('AIで視聴傾向を分析'),
-              onPressed: isAnalyzing ? null : () => _runAnalysis(_userId!),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF667EEA),
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 48),
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (isAnalyzing)
-              Row(
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(width: 12),
-                  const Text('分析中...'),
-                ],
-              ),
-            if (analysisComment != null)
+
+            // 分析結果表示（既存の場合）
+            if (analysisComment != null && !isAnalyzing)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(top: 8),
+                margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
@@ -279,6 +285,32 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
                         ),
                       ),
                     ),
+                  ],
+                ),
+              ),
+
+            // 分析ボタン
+            ElevatedButton.icon(
+              icon: const Icon(Icons.insights),
+              label: Text(analysisComment != null ? 'AIで再分析' : 'AIで視聴傾向を分析'),
+              onPressed: isAnalyzing ? null : () => _runAnalysis(_userId!),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF667EEA),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 48),
+              ),
+            ),
+
+            // 分析中表示
+            if (isAnalyzing)
+              const Padding(
+                padding: EdgeInsets.only(top: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: 12),
+                    Text('分析中...'),
                   ],
                 ),
               ),
