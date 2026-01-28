@@ -3,10 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:collection/collection.dart';
 import 'package:animeishi/config/feature_flags.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum SortOrder { tid, year, name }
 
 class AnimeListViewModel extends ChangeNotifier {
+  static const String _hasDownloadedKey = 'anime_list_has_downloaded';
+
   List<Map<String, dynamic>> _animeList = [];
   List<Map<String, dynamic>> _filteredAnimeList = [];
   bool _isLoading = false;
@@ -140,6 +143,18 @@ class AnimeListViewModel extends ChangeNotifier {
     if (!_disposed) {
       notifyListeners();
     }
+  }
+
+  /// アニメリストが初回ダウンロード済みかどうかを確認
+  Future<bool> _hasDownloadedAnimeList() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_hasDownloadedKey) ?? false;
+  }
+
+  /// アニメリストをダウンロード済みとしてマーク
+  Future<void> _markAsDownloaded() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_hasDownloadedKey, true);
   }
 
   Future<void> initOfflineModeAndLoadCache() async {
@@ -405,7 +420,40 @@ class AnimeListViewModel extends ChangeNotifier {
     ];
   }
 
-  Future<void> fetchFromServer() async {
+  /// アニメリストを初期化（初回のみサーバーから取得）
+  Future<void> initAnimeList() async {
+    // 開発環境ではテストデータを使用
+    if (FeatureFlags.enableTestDataCreation) {
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('開発環境: テスト用データを使用します');
+      }
+      _animeList = _generateTestData();
+      sortAnimeList();
+      await loadSelectedAnime();
+      return;
+    }
+
+    // 初回ダウンロード済みかチェック
+    final hasDownloaded = await _hasDownloadedAnimeList();
+
+    if (!hasDownloaded) {
+      // 初回: サーバーから取得
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('初回起動: サーバーからアニメリストを取得します');
+      }
+      await fetchFromServer(forceRefresh: true);
+    } else {
+      // 2回目以降: キャッシュから取得
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('キャッシュからアニメリストを読み込みます');
+      }
+      await initOfflineModeAndLoadCache();
+    }
+  }
+
+  /// サーバーからアニメリストを取得
+  /// [forceRefresh] trueの場合、強制的にサーバーから取得してキャッシュを更新
+  Future<void> fetchFromServer({bool forceRefresh = false}) async {
     _isLoading = true;
     _safeNotifyListeners();
 
@@ -453,6 +501,13 @@ class AnimeListViewModel extends ChangeNotifier {
 
       // 選択されたアニメの情報を取得
       await loadSelectedAnime();
+
+      // 初回ダウンロード完了をマーク
+      await _markAsDownloaded();
+
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('サーバーから取得完了: ${_animeList.length}件');
+      }
 
       // await FirebaseFirestore.instance.disableNetwork();
     } catch (e) {

@@ -17,7 +17,7 @@ class AnimeListPage extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) {
         final viewModel = AnimeListViewModel();
-        viewModel.fetchFromServer();
+        viewModel.initAnimeList();
         return viewModel;
       },
       child: Scaffold(
@@ -397,7 +397,7 @@ class AnimeListPage extends StatelessWidget {
   Future<void> _handleFetchFromServer(
       BuildContext context, AnimeListViewModel viewModel) async {
     try {
-      await viewModel.fetchFromServer();
+      await viewModel.fetchFromServer(forceRefresh: true);
       final count = viewModel.animeList.length;
       AnimeNotification.showSuccess(
         context,
