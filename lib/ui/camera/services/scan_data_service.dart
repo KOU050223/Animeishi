@@ -167,7 +167,7 @@ class ScanDataService {
         'analysisComment': comment,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      print('analysisComment保存成功: $currentUserId -> $friendUserId');
+      print('analysisComment保存成功');
     } catch (e) {
       print('analysisComment保存エラー: $e');
       rethrow;

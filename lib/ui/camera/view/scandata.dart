@@ -69,12 +69,14 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
           _userId!,
         );
         if (savedComment != null) {
+          if (!mounted) return;
           setState(() {
             analysisComment = savedComment;
           });
         }
       }
 
+      if (!mounted) return;
       setState(() {
         _scanResult = result;
         _isLoading = false;
@@ -113,18 +115,24 @@ class _ScanDataWidgetState extends State<ScanDataWidget>
       // 分析結果をFirestoreに保存
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
       if (currentUserId != null) {
-        await ScanDataService.saveAnalysisComment(
-          currentUserId,
-          userId,
-          comment,
-        );
+        try {
+          await ScanDataService.saveAnalysisComment(
+            currentUserId,
+            userId,
+            comment,
+          );
+        } catch (e) {
+          debugPrint('analysisComment保存失敗: $e');
+        }
       }
 
+      if (!mounted) return;
       setState(() {
         analysisComment = comment;
         isAnalyzing = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         analysisComment = 'AI分析に失敗しました: $e';
         isAnalyzing = false;
