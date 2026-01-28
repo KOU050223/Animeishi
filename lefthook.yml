@@ -1,0 +1,16 @@
+# Lefthook設定ファイル
+# コミット前に自動的にフォーマットと静的解析を実行
+
+pre-commit:
+  parallel: false  # 順序を保証するため並列実行を無効化
+  commands:
+    # Dartコードのフォーマット
+    format:
+      glob: "*.dart"
+      run: dart format {staged_files} && git add {staged_files}
+      stage_fixed: true
+
+    # 静的解析（Linter）
+    analyze:
+      glob: "*.dart"
+      run: flutter analyze
