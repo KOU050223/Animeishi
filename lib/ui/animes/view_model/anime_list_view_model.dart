@@ -3,10 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:collection/collection.dart';
 import 'package:animeishi/config/feature_flags.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum SortOrder { tid, year, name }
 
 class AnimeListViewModel extends ChangeNotifier {
+  static const String _hasDownloadedKey = 'anime_list_has_downloaded';
+
   List<Map<String, dynamic>> _animeList = [];
   List<Map<String, dynamic>> _filteredAnimeList = [];
   bool _isLoading = false;
@@ -16,7 +19,6 @@ class AnimeListViewModel extends ChangeNotifier {
   bool _isAscending = false; //デフォルトを降順
   bool _disposed = false; // dispose状態を追跡
   String _searchQuery = ''; // 検索クエリ
-  bool _hasFetchedFromServer = false; // サーバーから取得済みかどうかのフラグ
 
   List<Map<String, dynamic>> get animeList =>
       _filteredAnimeList.isNotEmpty || _searchQuery.isNotEmpty
@@ -28,8 +30,6 @@ class AnimeListViewModel extends ChangeNotifier {
   SortOrder get sortOrder => _sortOrder; //ソート順を取得するゲッター
   bool get isAscending => _isAscending; //昇順 or 降順を取得
   String get searchQuery => _searchQuery; // 検索クエリを取得するゲッター
-  bool get hasFetchedFromServer =>
-      _hasFetchedFromServer; // サーバーから取得済みかどうかを取得するゲッター
 
   //ソート順の変更
   void setSortOrder(SortOrder order) {
@@ -143,6 +143,18 @@ class AnimeListViewModel extends ChangeNotifier {
     if (!_disposed) {
       notifyListeners();
     }
+  }
+
+  /// アニメリストが初回ダウンロード済みかどうかを確認
+  Future<bool> _hasDownloadedAnimeList() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_hasDownloadedKey) ?? false;
+  }
+
+  /// アニメリストをダウンロード済みとしてマーク
+  Future<void> _markAsDownloaded() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_hasDownloadedKey, true);
   }
 
   Future<void> initOfflineModeAndLoadCache() async {
@@ -408,15 +420,40 @@ class AnimeListViewModel extends ChangeNotifier {
     ];
   }
 
-  Future<void> fetchFromServer({bool force = false}) async {
-    // 既に取得済みで、強制フェッチでない場合はスキップ
-    if (_hasFetchedFromServer && !force) {
+  /// アニメリストを初期化（初回のみサーバーから取得）
+  Future<void> initAnimeList() async {
+    // 開発環境ではテストデータを使用
+    if (FeatureFlags.enableTestDataCreation) {
       if (FeatureFlags.enableDebugLogs) {
-        debugPrint('アニメリストは既に取得済みです。再取得をスキップします。');
+        debugPrint('開発環境: テスト用データを使用します');
       }
+      _animeList = _generateTestData();
+      sortAnimeList();
+      await loadSelectedAnime();
       return;
     }
 
+    // 初回ダウンロード済みかチェック
+    final hasDownloaded = await _hasDownloadedAnimeList();
+
+    if (!hasDownloaded) {
+      // 初回: サーバーから取得
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('初回起動: サーバーからアニメリストを取得します');
+      }
+      await fetchFromServer(forceRefresh: true);
+    } else {
+      // 2回目以降: キャッシュから取得
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('キャッシュからアニメリストを読み込みます');
+      }
+      await initOfflineModeAndLoadCache();
+    }
+  }
+
+  /// サーバーからアニメリストを取得
+  /// [forceRefresh] trueの場合、強制的にサーバーから取得してキャッシュを更新
+  Future<void> fetchFromServer({bool forceRefresh = false}) async {
     _isLoading = true;
     _safeNotifyListeners();
 
@@ -437,8 +474,6 @@ class AnimeListViewModel extends ChangeNotifier {
         if (FeatureFlags.enableDebugLogs) {
           debugPrint('テスト用データの読み込み完了: ${_animeList.length}件');
         }
-
-        _hasFetchedFromServer = true;
         return;
       }
 
@@ -467,7 +502,12 @@ class AnimeListViewModel extends ChangeNotifier {
       // 選択されたアニメの情報を取得
       await loadSelectedAnime();
 
-      _hasFetchedFromServer = true;
+      // 初回ダウンロード完了をマーク
+      await _markAsDownloaded();
+
+      if (FeatureFlags.enableDebugLogs) {
+        debugPrint('サーバーから取得完了: ${_animeList.length}件');
+      }
 
       // await FirebaseFirestore.instance.disableNetwork();
     } catch (e) {
@@ -480,7 +520,6 @@ class AnimeListViewModel extends ChangeNotifier {
         }
         _animeList = _generateTestData();
         sortAnimeList();
-        _hasFetchedFromServer = true;
       }
     } finally {
       _isLoading = false;
